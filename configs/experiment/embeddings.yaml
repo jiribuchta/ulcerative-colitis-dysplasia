@@ -1,0 +1,21 @@
+# @package _global_
+
+defaults:
+  - /dataset/embeddings
+  - _self_
+
+mode: fit
+
+metadata:
+  run_name: "📊 MLP Embeddings"
+  description: "Tile-level LG/HG dysplasia percentage regression on precomputed tile embeddings"
+
+trainer:
+  max_epochs: 50
+  accelerator: gpu
+  devices: 1
+
+model:
+  _target_: dysplasia.dysplasia_embeddings.DysplasiaEmbeddingsPercentagesModel
+  dims: [1536, 512, 256, 2]
+  lr: 0.001

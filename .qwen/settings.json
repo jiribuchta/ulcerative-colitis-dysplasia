@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(/home/jovyan/dysplasia/ulcerative-colitis-dysplasia/.venv/bin/python *)",
+      "Read(//home/jovyan/.vscode-server/extensions/qwenlm.qwen-code-vscode-ide-companion-0.15.11-linux-x64/dist/qwen-cli/bundled/qc-helper/docs/**)",
+      "Bash(source *)",
+      "Bash(xargs *)",
+      "Bash(git show *)",
+      "Bash(git *)",
+      "Bash(.venv/bin/ruff *)",
+      "Bash(.venv/bin/mypy *)",
+      "Bash(.venv/bin/python *)"
+    ]
+  },
+  "$version": 4
+}

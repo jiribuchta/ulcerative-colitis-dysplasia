@@ -64,7 +64,7 @@ def process_slide(slide: SlideTiles[PredictSample]) -> None:
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    dataset = TilesPredict(uris=config.dataset.uris.tiling_filtered.train)
+    dataset = TilesPredict(uris=config.dataset.mlflow_uris.tiling_filtered.train)
 
     slides = cast("list[SlideTiles]", dataset.datasets)
     process_items(slides, process_item=process_slide)

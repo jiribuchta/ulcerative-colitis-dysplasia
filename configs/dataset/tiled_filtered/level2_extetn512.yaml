@@ -6,6 +6,6 @@ defaults:
 
 mlflow_uris:
   tiling_filtered: 
-    train: ???
-    test_preliminary: ???
-    test_final: ???
+    train: mlflow-artifacts:/111/2ba0d3c0895847da8f52f964e0986b0d/artifacts/filtered_tiles/train
+    test_preliminary: mlflow-artifacts:/111/2ba0d3c0895847da8f52f964e0986b0d/artifacts/filtered_tiles/test_preliminary
+    test_final: mlflow-artifacts:/111/2ba0d3c0895847da8f52f964e0986b0d/artifacts/filtered_tiles/test_final

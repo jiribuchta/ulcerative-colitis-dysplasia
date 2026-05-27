@@ -44,30 +44,29 @@ def process_slide(slide: SlideTiles[PredictSample]) -> None:
     Arguments:
         slide (SlideTiles): Slide dataset.
     """
-    from torch.utils.data import DataLoader
-
-    # Use DataLoader with batching to leverage vectorized PyTorch operations
-    loader = DataLoader(slide, batch_size=64, num_workers=2)
-
     sum_ = torch.zeros(3, dtype=torch.float64)
     sum_sq = torch.zeros(3, dtype=torch.float64)
     count = 0
 
-    for tile in loader:
-        x = cast("torch.Tensor", tile[0]).float()
-        sum_ += x.sum(dim=(0, 2, 3))
-        sum_sq += (x**2).sum(dim=(0, 2, 3))
-        count += x.shape[0] * x.shape[2] * x.shape[3]
+    for i in range(len(slide)):
+        tile = slide[i]
+        assert len(tile) == 2
+        x, _ = tile
+        x = x.float()  # x shape is (C, H, W)
+
+        sum_ += x.sum(dim=(1, 2))
+        sum_sq += (x**2).sum(dim=(1, 2))
+        count += x.shape[1] * x.shape[2]
 
     stats_actor = ray.get_actor("stats_actor")
-    stats_actor.add_stats.remote(sum_, sum_sq, count)
+    stats_actor.add_stats.remote(sum_, sum_sq, count)  # type: ignore[attr-defined]
 
 
 @with_cli_args(["+preprocessing=mean_std"])
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    stats_actor = StatsActor.options(name="stats_actor").remote()
+    stats_actor = StatsActor.options(name="stats_actor").remote()  # type: ignore[attr-defined]
 
     dataset = TilesPredict(uris=config.dataset.mlflow_uris.tiling_filtered.train)
 

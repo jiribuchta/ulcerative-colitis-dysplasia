@@ -40,6 +40,5 @@ def get_label(tile: dict[str, Any], mode: LabelMode) -> torch.Tensor:
             return torch.tensor(tile["LG Dysplasia"] > 0).float()
         case LabelMode.HIGH_LOW:
             return torch.tensor(
-                tile["HG Dysplasia"] > 0,
-                tile["LG Dysplasia"] > 0,
+                [tile["HG Dysplasia"] > 0, tile["LG Dysplasia"] > 0]
             ).float()

@@ -45,7 +45,7 @@ class SlideTiles[T: Sample | PredictSample](Dataset[T]):
         image = self.slide_tiles[idx]
         tile = self.slide_tiles.tiles[idx]
         metadata = Metadata(
-            slide_name=self.slide_tiles.slide_path.stem,
+            slide_name=self.slide_metadata["name"],
             x=tile["x"],
             y=tile["y"],
         )
@@ -81,7 +81,7 @@ class Tiles(MetaTiledSlides[Sample]):
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[SlideTiles[Sample]]:
-        self.slides = process_slides(self.slides, self.val_fold, self.is_val)
+        slides = process_slides(self.slides, self.val_fold, self.is_val)
         return (
             SlideTiles(
                 slide_metadata=dict(slide),
@@ -92,7 +92,7 @@ class Tiles(MetaTiledSlides[Sample]):
                 include_labels=True,
                 transforms=self.transforms,
             )
-            for slide in self.slides
+            for slide in slides
         )
 
 
@@ -108,7 +108,7 @@ class TilesPredict(MetaTiledSlides[PredictSample]):
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[SlideTiles[PredictSample]]:
-        self.slides = process_slides(self.slides)
+        slides = process_slides(self.slides)
         return (
             SlideTiles(
                 slide_metadata=dict(slide),
@@ -118,5 +118,5 @@ class TilesPredict(MetaTiledSlides[PredictSample]):
                 include_labels=False,
                 transforms=self.transforms,
             )
-            for slide in self.slides
+            for slide in slides
         )

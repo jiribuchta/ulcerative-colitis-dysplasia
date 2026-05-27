@@ -63,7 +63,7 @@ class Embeddings(MetaTiledSlides[Sample]):
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[_Embeddings[Sample]]:
-        self.slides = process_slides(self.slides, self.val_fold, self.is_val)
+        slides = process_slides(self.slides, self.val_fold, self.is_val)
         return (
             _Embeddings(
                 slide_metadata=dict(slide),
@@ -73,7 +73,7 @@ class Embeddings(MetaTiledSlides[Sample]):
                 mode=self.mode,
                 include_labels=True,
             )
-            for slide in self.slides
+            for slide in slides
         )
 
 
@@ -87,7 +87,7 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[_Embeddings[PredictSample]]:
-        self.slides = process_slides(self.slides)
+        slides = process_slides(self.slides)
         return (
             _Embeddings(
                 slide_metadata=dict(slide),
@@ -96,5 +96,5 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
                 ),
                 include_labels=False,
             )
-            for slide in self.slides
+            for slide in slides
         )

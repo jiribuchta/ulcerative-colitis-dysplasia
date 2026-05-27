@@ -59,7 +59,7 @@ def process_slide(slide: SlideTiles[PredictSample]) -> None:
         count += x.shape[1] * x.shape[2]
 
     stats_actor = ray.get_actor("stats_actor")
-    stats_actor.add_stats.remote(sum_, sum_sq, count)  # type: ignore[attr-defined]
+    stats_actor.add_stats.remote(sum_, sum_sq, count)
 
 
 @with_cli_args(["+preprocessing=mean_std"])

@@ -66,7 +66,7 @@ def process_slide(slide: SlideTiles[PredictSample]) -> None:
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
     dataset = TilesPredict(uris=config.dataset.mlflow_uris.tiling_filtered.train)
 
-    slides = cast("list[SlideTiles]", dataset.datasets)
+    slides = cast("list[SlideTiles[PredictSample]]", dataset.datasets)
     process_items(slides, process_item=process_slide)
 
     mean = cast("torch.Tensor", ray.get(stats_actor.get_mean.remote()))

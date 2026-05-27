@@ -16,7 +16,7 @@ class _Embeddings[T: Sample | PredictSample](Dataset[T]):
         self,
         slide_metadata: dict[str, Any],
         tiles: HFDataset,
-        mode: LabelMode | str | None,
+        mode: LabelMode | str | None = None,
         include_labels: bool = True,
     ) -> None:
         self.slide_metadata = slide_metadata
@@ -81,10 +81,8 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
     def __init__(
         self,
         uris: Iterable[str] | str,
-        mode: LabelMode | str,
         thresholds: dict[str, float] | None = None,
     ) -> None:
-        self.mode = LabelMode(mode)
         self.thresholds = thresholds or {}
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
@@ -96,7 +94,6 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
                 tiles=filter_tiles(
                     self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
                 ),
-                mode=self.mode,
                 include_labels=False,
             )
             for slide in self.slides

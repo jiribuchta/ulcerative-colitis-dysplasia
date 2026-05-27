@@ -47,17 +47,21 @@ def process_slide(slide: SlideTiles[PredictSample]) -> None:
     Arguments:
         slide (SlideTiles): Slide dataset.
     """
+    sum_ = torch.zeros(3, dtype=torch.float64)
+    sum_sq = torch.zeros(3, dtype=torch.float64)
+    count = 0
+
     for i in range(len(slide)):
         tile = slide[i]
         assert len(tile) == 2
         x, _ = tile
         x = x.float()  # x shape is (C, H, W)
 
-        sum_ = x.sum(dim=(1, 2))
-        sum_sq = (x**2).sum(dim=(1, 2))
-        count = x.shape[1] * x.shape[2]
+        sum_ += x.sum(dim=(1, 2))
+        sum_sq += (x**2).sum(dim=(1, 2))
+        count += x.shape[1] * x.shape[2]
 
-        stats_actor.add_stats.remote(sum_, sum_sq, count)
+    stats_actor.add_stats.remote(sum_, sum_sq, count)
 
 
 @with_cli_args(["+preprocessing=mean_std"])

@@ -28,23 +28,18 @@ def process_slides(
     return slides
 
 
-def get_label(slide_metadata: dict[str, Any], mode: LabelMode) -> torch.Tensor:
+def get_label(tile: dict[str, Any], mode: LabelMode) -> torch.Tensor:
     match mode:
         case LabelMode.MIXED:
             return torch.tensor(
-                slide_metadata["HG Dysplasia"] > 0 or slide_metadata["LG Dysplasia"] > 0
+                tile["HG Dysplasia"] > 0 or tile["LG Dysplasia"] > 0
             ).float()
         case LabelMode.HIGH:
-            return torch.tensor(slide_metadata["HG Dysplasia"] > 0).float()
+            return torch.tensor(tile["HG Dysplasia"] > 0).float()
         case LabelMode.LOW:
-            return torch.tensor(slide_metadata["LG Dysplasia"] > 0).float()
+            return torch.tensor(tile["LG Dysplasia"] > 0).float()
         case LabelMode.HIGH_LOW:
-            hg = slide_metadata["HG Dysplasia"]
-            lg = slide_metadata["LG Dysplasia"]
-
-            if hg == 0 and lg == 0:
-                return torch.tensor(0).long()
-            elif lg > hg:
-                return torch.tensor(1).long()
-            else:
-                return torch.tensor(2).long()
+            return torch.tensor(
+                tile["HG Dysplasia"] > 0,
+                tile["LG Dysplasia"] > 0,
+            ).float()

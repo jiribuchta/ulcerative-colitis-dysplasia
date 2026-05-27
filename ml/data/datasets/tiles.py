@@ -17,7 +17,7 @@ class SlideTiles[T: Sample | PredictSample](Dataset[T]):
         self,
         slide_metadata: dict[str, Any],
         tiles: HFDataset,
-        mode: LabelMode | str | None,
+        mode: LabelMode | str | None = None,
         include_labels: bool = True,
         transforms: TransformType | None = None,
     ) -> None:
@@ -43,10 +43,11 @@ class SlideTiles[T: Sample | PredictSample](Dataset[T]):
 
     def __getitem__(self, idx: int) -> T:
         image = self.slide_tiles[idx]
+        tile = self.slide_tiles.tiles[idx]
         metadata = Metadata(
             slide_name=self.slide_tiles.slide_path.stem,
-            x=self.slide_tiles.tiles[idx]["x"],
-            y=self.slide_tiles.tiles[idx]["y"],
+            x=tile["x"],
+            y=tile["y"],
         )
 
         if self.transforms is not None:
@@ -58,7 +59,7 @@ class SlideTiles[T: Sample | PredictSample](Dataset[T]):
             return cast("T", (image, metadata))
 
         assert self.mode is not None, "Mode must be specified for labels."
-        label = get_label(self.slide_metadata, self.mode)
+        label = get_label(tile, self.mode)
         return cast("T", (image, label, metadata))
 
 
@@ -114,7 +115,6 @@ class TilesPredict(MetaTiledSlides[PredictSample]):
                 tiles=filter_tiles(
                     self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
                 ),
-                mode=None,
                 include_labels=False,
                 transforms=self.transforms,
             )

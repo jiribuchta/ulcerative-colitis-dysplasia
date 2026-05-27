@@ -84,7 +84,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         if tiles_parquet_dir.exists():
             shutil.rmtree(tiles_parquet_dir)
 
-        shutil.copyfile(folder / "slides", split_dir / "slides")
+        shutil.copytree(folder / "slides", split_dir / "slides")
         ds.write_parquet(str(tiles_parquet_dir), min_rows_per_file=config.rows_per_file)
 
         logger.log_artifacts(str(split_dir), f"{name} - {config.dataset.institution}")

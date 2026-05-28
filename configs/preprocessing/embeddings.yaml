@@ -2,6 +2,7 @@
 
 model: virchow2
 output_dir: ${project_path}/embeddings/${dataset.mpp}mpp
+mlflow_artifact_path: embeddings
 concurrency: 512
 block_size: 128
 rows_per_file: 50000

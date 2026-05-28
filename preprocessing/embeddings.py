@@ -87,7 +87,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         shutil.copytree(folder / "slides", split_dir / "slides", dirs_exist_ok=True)
         ds.write_parquet(str(tiles_parquet_dir), min_rows_per_file=config.rows_per_file)
 
-        logger.log_artifacts(str(split_dir), f"{name} - {config.dataset.institution}")
+    logger.log_artifacts(config.output_dir, config.mlflow_artifact_path)
 
 
 if __name__ == "__main__":

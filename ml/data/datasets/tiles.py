@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from typing import Any, cast
 
+import torch
 from albumentations.core.composition import TransformType
 from albumentations.pytorch import ToTensorV2
 from datasets import Dataset as HFDataset
@@ -64,6 +65,18 @@ class SlideTiles[T: Sample | PredictSample](Dataset[T]):
 
 
 class Tiles(MetaTiledSlides[Sample]):
+    @property
+    def labels(self) -> torch.Tensor:
+        return torch.stack(
+            [
+                get_label(cast("dict[str, Any]", tile), self.mode)
+                for slide in self.slides
+                for tile in filter_tiles(
+                    self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
+                )
+            ]
+        )
+
     def __init__(
         self,
         uris: Iterable[str] | str,

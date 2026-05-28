@@ -48,6 +48,18 @@ class _Embeddings[T: Sample | PredictSample](Dataset[T]):
 
 
 class Embeddings(MetaTiledSlides[Sample]):
+    @property
+    def labels(self) -> torch.Tensor:
+        return torch.stack(
+            [
+                get_label(cast("dict[str, Any]", tile), self.mode)
+                for slide in self.slides
+                for tile in filter_tiles(
+                    self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
+                )
+            ]
+        )
+
     def __init__(
         self,
         uris: Iterable[str] | str,
@@ -63,7 +75,7 @@ class Embeddings(MetaTiledSlides[Sample]):
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[_Embeddings[Sample]]:
-        slides = process_slides(self.slides, self.val_fold, self.is_val)
+        self.slides = process_slides(self.slides, self.val_fold, self.is_val)
         return (
             _Embeddings(
                 slide_metadata=dict(slide),
@@ -73,7 +85,7 @@ class Embeddings(MetaTiledSlides[Sample]):
                 mode=self.mode,
                 include_labels=True,
             )
-            for slide in slides
+            for slide in self.slides
         )
 
 

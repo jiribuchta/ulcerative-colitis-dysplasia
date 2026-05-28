@@ -23,7 +23,8 @@ trainer:
 
 model:
   lr: 1e-4
-  out_features: 2
+  decode_head:
+    out_features: 2
 
 metadata:
   run_name: "🏋️‍♂️ Training - ${label_mode} - ${model_name} - ${dataset.tile_extent}px @ ${dataset.mpp}mpp - ${val_fold} fold"

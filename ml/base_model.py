@@ -76,7 +76,7 @@ class BaseModel(LightningModule):
             prog_bar=True,
         )
 
-        self.train_metrics.update(predictions, targets)
+        self.train_metrics.update(predictions, targets.long())
         self.log_dict(self.train_metrics, batch_size=len(inputs), on_epoch=True)
 
         return loss

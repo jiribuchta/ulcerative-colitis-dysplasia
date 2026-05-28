@@ -23,8 +23,9 @@ from ml.typing import Input, PredictInput
 class BaseModel(LightningModule):
     decode_head: BaseClassifier
 
-    def __init__(self, lr: float) -> None:
+    def __init__(self, decode_head: BaseClassifier, lr: float) -> None:
         super().__init__()
+        self.decode_head = decode_head
         self.lr = lr
 
         num_classes = self.decode_head.out_features

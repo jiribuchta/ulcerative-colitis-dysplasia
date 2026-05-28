@@ -8,9 +8,8 @@ class CNNModel(BaseModel):
     def __init__(
         self, backbone: nn.Module, decode_head: CNNClassifier, lr: float
     ) -> None:
+        super().__init__(decode_head=decode_head, lr=lr)
         self.backbone = backbone
-        self.decode_head = decode_head
-        super().__init__(lr=lr)
 
     def forward(self, x: Tensor) -> Tensor:
         features = self.backbone(x)

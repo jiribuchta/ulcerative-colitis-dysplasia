@@ -5,3 +5,5 @@ defaults:
 
 seed: ${random_seed:}
 checkpoint: null
+
+dataset: ???

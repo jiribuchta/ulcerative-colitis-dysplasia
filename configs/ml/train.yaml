@@ -1,9 +1,16 @@
+# @package _global_
+
 defaults:
   - /ml
   - _self_
 
 mode: fit
+label_mode: high_low
 val_fold: ???
+
+mean: ${dataset.mean}
+std: ${dataset.std}
+thresholds: ${dataset.thresholds}
 
 trainer:
   enable_checkpointing: true
@@ -18,3 +25,7 @@ trainer:
       monitor: validation/loss
       mode: min 
       patience: 5
+
+model:
+  lr: 1e-4
+  out_features: 2

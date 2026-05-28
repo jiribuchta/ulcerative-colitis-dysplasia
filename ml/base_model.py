@@ -3,13 +3,12 @@ from typing import Any, Literal, cast
 
 from lightning import LightningModule
 from torch import Tensor
-from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, Sigmoid, Softmax
+from torch.nn import BCEWithLogitsLoss, Sigmoid
 from torch.optim import AdamW
 from torch.optim.optimizer import Optimizer
 from torchmetrics import (
     AUROC,
     Accuracy,
-    CohenKappa,
     Metric,
     MetricCollection,
     Precision,
@@ -29,21 +28,24 @@ class BaseModel(LightningModule):
         self.lr = lr
 
         num_classes = self.decode_head.out_features
-        self.criterion = BCEWithLogitsLoss() if num_classes == 1 else CrossEntropyLoss()
-        self.activation = Sigmoid() if num_classes == 1 else Softmax(dim=1)
+        self.criterion = BCEWithLogitsLoss()
+        self.activation = Sigmoid()
 
-        task: Literal["binary", "multiclass"] = (
-            "binary" if num_classes == 1 else "multiclass"
+        task: Literal["binary", "multilabel"] = (
+            "binary" if num_classes == 1 else "multilabel"
         )
+        kwargs: dict[str, Any] = {"task": task}
+        if task == "binary":
+            kwargs["num_classes"] = num_classes
+        else:
+            kwargs["num_labels"] = num_classes
+
         metrics: dict[str, Metric | MetricCollection] = {
-            "AUC": AUROC(task=task, num_classes=num_classes, average="none"),
-            "accuracy": Accuracy(task=task, num_classes=num_classes),
-            "precision": Precision(task=task, num_classes=num_classes, average="none"),
-            "recall": Recall(task=task, num_classes=num_classes, average="none"),
-            "specificity": Specificity(
-                task=task, num_classes=num_classes, average="none"
-            ),
-            "kappa": CohenKappa(task=task, num_classes=num_classes),
+            "AUC": AUROC(**kwargs, average="none"),
+            "accuracy": Accuracy(**kwargs),
+            "precision": Precision(**kwargs, average="none"),
+            "recall": Recall(**kwargs, average="none"),
+            "specificity": Specificity(**kwargs, average="none"),
         }
 
         self.train_metrics = MetricCollection(

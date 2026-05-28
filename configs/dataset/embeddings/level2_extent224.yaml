@@ -1,0 +1,9 @@
+defaults:
+  - /dataset/tiled_filtered/level2_extent224@_here_
+  - _self_
+
+mlflow_uris:
+  embeddings: 
+    train: mlflow-artifacts:/111/98b0d0d92a6e483eb29b63213fd4501c/artifacts/embeddings/train
+    test_preliminary: mlflow-artifacts:/111/98b0d0d92a6e483eb29b63213fd4501c/artifacts/embeddings/test_preliminary
+    test_final: mlflow-artifacts:/111/98b0d0d92a6e483eb29b63213fd4501c/artifacts/embeddings/test_final

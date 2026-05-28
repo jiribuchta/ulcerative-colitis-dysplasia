@@ -1,5 +1,7 @@
 defaults:
   - /dataset/tiled/level1_extent512@_here_
+  - stats
+  - thresholds
   - _self_
 
 mlflow_uris:

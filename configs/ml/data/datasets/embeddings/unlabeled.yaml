@@ -1,0 +1,3 @@
+_target_: ml.data.datasets.EmbeddingsPredict
+uris: ???
+thresholds: ${thresholds}

@@ -21,7 +21,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     seed_everything(config.seed, workers=True)
 
     data = hydra.utils.instantiate(
-        config.data,
+        config.datamodule,
         _recursive_=False,  # to avoid instantiating all the datasets
         _target_=DataModule,
     )

@@ -1,6 +1,7 @@
 from random import randint
 
 import hydra
+import mlflow
 from lightning import seed_everything
 from omegaconf import DictConfig, OmegaConf
 from rationai.mlkit import Trainer, autolog
@@ -14,7 +15,7 @@ OmegaConf.register_new_resolver(
 )
 
 
-@hydra.main(config_path="../configs", config_name="project_name", version_base=None)
+@hydra.main(config_path="../configs", config_name="ml", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
     seed_everything(config.seed, workers=True)
@@ -28,6 +29,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
     trainer = hydra.utils.instantiate(config.trainer, _target_=Trainer, logger=logger)
     getattr(trainer, config.mode)(model, datamodule=data, ckpt_path=config.checkpoint)
+    mlflow.end_run()
 
 
 if __name__ == "__main__":

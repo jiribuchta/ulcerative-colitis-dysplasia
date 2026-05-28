@@ -1,7 +1,7 @@
 # @package _global_
 
 defaults:
-  - /ml/train/base
+  - base
   - /ml/data/tiles_datamodule
   - _self_
 

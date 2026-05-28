@@ -4,3 +4,5 @@ defaults:
   - /experiment/ml/train/tiles
   - /ml/model/vgg16@model
   - _self_
+
+model_name: vgg16

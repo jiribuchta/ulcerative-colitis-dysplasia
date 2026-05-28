@@ -1,4 +1,4 @@
-annot_path: /mnt/data/IKEM/colon/IBD_AI/dysplasia/annotations
-selected_clear_cases: /mnt/data/IKEM/colon/IBD_AI/dysplasia/IBD_dysplazie_jasne.xlsx
-selected_unclear_cases: /mnt/data/IKEM/colon/IBD_AI/dysplasia/IBD_dyspl_nejasne.xlsx
+annot_path: ${data_path}/annotations
+selected_clear_cases: ${data_path}/IBD_dysplazie_jasne.xlsx
+selected_unclear_cases: ${data_path}/IBD_dyspl_nejasne.xlsx
 regex_pattern: '^\d+_\d+_HE_[0-9A-Z]+\.(czi|json)$'

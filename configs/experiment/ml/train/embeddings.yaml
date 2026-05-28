@@ -1,7 +1,7 @@
 # @package _global_
 
 defaults:
-  - /ml/train/base
+  - base
   - /ml/data/embeddings_datamodule
   - _self_
 

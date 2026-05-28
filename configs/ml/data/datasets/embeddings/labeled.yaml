@@ -1,4 +1,4 @@
 _target_: ml.data.datasets.Embeddings
 uris: ???
-thresholds: ${thresholds}
+thresholds: ${dataset.thresholds}
 mode: ${label_mode}

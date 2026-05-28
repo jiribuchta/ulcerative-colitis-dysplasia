@@ -95,7 +95,7 @@ class BaseModel(LightningModule):
             prog_bar=True,
         )
 
-        self.val_metrics.update(predictions, targets)
+        self.val_metrics.update(predictions, targets.long())
         self.log_dict(self.val_metrics, batch_size=len(inputs), on_epoch=True)
 
     def test_step(self, batch: Input) -> Tensor:
@@ -103,7 +103,7 @@ class BaseModel(LightningModule):
         logits = self(inputs)
         predictions = self.activation(logits)
 
-        self.test_metrics.update(predictions, targets)
+        self.test_metrics.update(predictions, targets.long())
         self.log_dict(self.test_metrics, batch_size=len(inputs), on_epoch=True)
 
         return predictions

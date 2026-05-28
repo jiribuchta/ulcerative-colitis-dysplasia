@@ -1,11 +1,9 @@
-# @package _global_
-
 defaults:
   - /dataset/tiled/level2_extent224@_here_
   - _self_
 
 mlflow_uris:
   tiling_filtered: 
-    train: ???
-    test_preliminary: ???
-    test_final: ???
+    train: mlflow-artifacts:/111/ddcfd10791df44738c1c2ad36fe7126b/artifacts/filtered_tiles/train
+    test_preliminary: mlflow-artifacts:/111/ddcfd10791df44738c1c2ad36fe7126b/artifacts/filtered_tiles/test_preliminary
+    test_final: mlflow-artifacts:/111/ddcfd10791df44738c1c2ad36fe7126b/artifacts/filtered_tiles/test_final

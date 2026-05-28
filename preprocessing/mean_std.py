@@ -35,9 +35,6 @@ class StatsActor:
         return torch.sqrt(self.sum_sq / self.count - mean**2)
 
 
-stats_actor = StatsActor.remote()  # type: ignore[attr-defined]
-
-
 @ray.remote
 def process_slide(slide: SlideTiles[PredictSample]) -> None:
     """Process the slide.
@@ -47,26 +44,33 @@ def process_slide(slide: SlideTiles[PredictSample]) -> None:
     Arguments:
         slide (SlideTiles): Slide dataset.
     """
+    sum_ = torch.zeros(3, dtype=torch.float64)
+    sum_sq = torch.zeros(3, dtype=torch.float64)
+    count = 0
+
     for i in range(len(slide)):
         tile = slide[i]
         assert len(tile) == 2
         x, _ = tile
         x = x.float()  # x shape is (C, H, W)
 
-        sum_ = x.sum(dim=(1, 2))
-        sum_sq = (x**2).sum(dim=(1, 2))
-        count = x.shape[1] * x.shape[2]
+        sum_ += x.sum(dim=(1, 2))
+        sum_sq += (x**2).sum(dim=(1, 2))
+        count += x.shape[1] * x.shape[2]
 
-        stats_actor.add_stats.remote(sum_, sum_sq, count)
+    stats_actor = ray.get_actor("stats_actor")
+    stats_actor.add_stats.remote(sum_, sum_sq, count)
 
 
 @with_cli_args(["+preprocessing=mean_std"])
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    dataset = TilesPredict(uris=config.dataset.uris.tiling_filtered.train)
+    stats_actor = StatsActor.options(name="stats_actor").remote()  # type: ignore[attr-defined]
 
-    slides = cast("list[SlideTiles]", dataset.datasets)
+    dataset = TilesPredict(uris=config.dataset.mlflow_uris.tiling_filtered.train)
+
+    slides = cast("list[SlideTiles[PredictSample]]", dataset.datasets)
     process_items(slides, process_item=process_slide)
 
     mean = cast("torch.Tensor", ray.get(stats_actor.get_mean.remote()))

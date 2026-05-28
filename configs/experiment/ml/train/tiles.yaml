@@ -2,7 +2,7 @@
 
 defaults:
   - base
-  - /ml/data/tiles_datamodule
+  - /ml/data/tiles_datamodule@datamodule
   - _self_
 
 datamodule:

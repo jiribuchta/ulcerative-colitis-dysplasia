@@ -2,7 +2,7 @@
 
 defaults:
   - base
-  - /ml/data/embeddings_datamodule
+  - /ml/data/embeddings_datamodule@datamodule
   - _self_
 
 datamodule:

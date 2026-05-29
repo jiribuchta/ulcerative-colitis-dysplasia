@@ -99,7 +99,7 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[_Embeddings[PredictSample]]:
-        slides = process_slides(self.slides)
+        self.slides = process_slides(self.slides)
         return (
             _Embeddings(
                 slide_metadata=dict(slide),
@@ -108,5 +108,5 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
                 ),
                 include_labels=False,
             )
-            for slide in slides
+            for slide in self.slides
         )

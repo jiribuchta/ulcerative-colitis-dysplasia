@@ -10,4 +10,4 @@ class EmbeddingModel(BaseModel):
 
     def forward(self, x: Tensor) -> Tensor:
         logits = self.decode_head(x)
-        return logits
+        return logits.squeeze(1)

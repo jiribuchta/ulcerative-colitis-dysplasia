@@ -14,4 +14,4 @@ class CNNModel(BaseModel):
     def forward(self, x: Tensor) -> Tensor:
         features = self.backbone(x)
         logits = self.decode_head(features)
-        return logits
+        return logits.squeeze(1)

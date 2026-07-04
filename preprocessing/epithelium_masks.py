@@ -60,13 +60,15 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         mlflow.artifacts.download_artifacts(artifact_uri=config.mlflow_uris.dataset)
     )
     dataset = pd.read_csv(dataset_path)
-    tissue_masks_path = Path(
-        mlflow.artifacts.download_artifacts(
-            artifact_uri=config.mlflow_uris.tissue
-        )
-    )
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory(dir=config.project_path) as tmp_dir:
+        tissue_masks_path = Path(
+            mlflow.artifacts.download_artifacts(
+                artifact_uri=config.mlflow_uris.tissue,
+                dst_path=tmp_dir,
+            )
+        )
+
         asyncio.run(
             segment_epithel(
                 slides=dataset["slide_path"].tolist(),

@@ -69,15 +69,16 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             )
         )
 
+        output_dir = Path(tmp_dir) / config.mlflow_artifact_path
         asyncio.run(
             segment_epithel(
                 slides=dataset["slide_path"].tolist(),
                 tissue_masks_dir=tissue_masks_path,
-                output_dir=Path(tmp_dir),
+                output_dir=output_dir,
                 max_concurrent=config.max_concurrent,
             )
         )
-        logger.log_artifacts(tmp_dir, config.mlflow_artifact_path)
+        logger.log_artifacts(str(output_dir))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,8 @@
+# @package _global_
+
+max_concurrent: 4
+mlflow_artifact_path: "epithelium_masks"
+
+metadata:
+  run_name: "Epithelium masks Creation"
+  description: "Create tissue masks for dysplasia project"

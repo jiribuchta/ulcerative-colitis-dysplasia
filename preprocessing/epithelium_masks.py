@@ -61,24 +61,30 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     )
     dataset = pd.read_csv(dataset_path)
 
-    with tempfile.TemporaryDirectory(dir=config.project_path) as tmp_dir:
-        tissue_masks_path = Path(
-            mlflow.artifacts.download_artifacts(
-                artifact_uri=config.mlflow_uris.tissue,
-                dst_path=tmp_dir,
-            )
-        )
+    output_dir = Path(config.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if config.only_missing:
+        existing_masks = {p.name for p in output_dir.glob("*.tiff")}
+        dataset = dataset[
+            ~dataset["slide_path"].apply(lambda p: Path(p).with_suffix(".tiff").name)
+            .isin(existing_masks)
+        ]
 
-        output_dir = Path(tmp_dir) / config.mlflow_artifact_path
-        asyncio.run(
-            segment_epithel(
-                slides=dataset["slide_path"].tolist(),
-                tissue_masks_dir=tissue_masks_path,
-                output_dir=output_dir,
-                max_concurrent=config.max_concurrent,
-            )
+    tissue_masks_path = Path(
+        mlflow.artifacts.download_artifacts(
+            artifact_uri=config.mlflow_uris.tissue,
+            dst_path=config.project_path
         )
-        logger.log_artifacts(str(output_dir), config.mlflow_artifact_path)
+    )
+    asyncio.run(
+        segment_epithel(
+            slides=dataset["slide_path"].tolist(),
+            tissue_masks_dir=tissue_masks_path,
+            output_dir=output_dir,
+            max_concurrent=config.max_concurrent,
+        )
+    )
+    logger.log_artifacts(str(output_dir), config.mlflow_artifact_path)
 
 
 if __name__ == "__main__":

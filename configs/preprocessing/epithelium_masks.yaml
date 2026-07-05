@@ -1,6 +1,6 @@
 # @package _global_
 
-max_concurrent: 4
+max_concurrent: 1
 mlflow_artifact_path: "epithelium_masks"
 
 metadata:

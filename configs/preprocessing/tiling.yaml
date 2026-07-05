@@ -10,5 +10,5 @@ target_groups:
   - "HG Dysplasia"
 
 metadata:
-  run_name: 🧩 Tiling - 1024px @ 1.55mpp
+  run_name: "🧩 Tiling - ${tile_extent}px @ ${mpp}mpp"
   description: "Create tiles for dysplasia project"

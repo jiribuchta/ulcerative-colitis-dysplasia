@@ -2,10 +2,10 @@ import re
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, TypedDict, cast
 
 import hydra
-import mlflow
+import mlflow.artifacts
 import pandas as pd
 import ray
 from mlflow.artifacts import download_artifacts
@@ -25,7 +25,7 @@ from shapely.geometry.base import BaseGeometry
 QC_BLUR_MEAN_COLUMN = "mean_coverage(Piqe)"
 QC_ARTIFACTS_MEAN_COLUMN = "mean_coverage(ResidualArtifactsAndCoverage)"
 QC_SUBFOLDERS = {"blur": "blur_per_pixel", "artifacts": "artifacts_per_pixel"}
-
+ 
 
 def qc_agg(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
     qc_df = cast("pd.Series", df.loc[Path(row["path"]).stem])
@@ -55,16 +55,18 @@ def add_mask_paths(
     row: dict[str, Any],
     qc_folder: Path,
     tissue_folder: Path,
+    epithelium_folder: Path,
 ) -> dict[str, Any]:
     stem = Path(row["path"]).stem
     row["tissue_mask_path"] = str(tissue_folder / f"{stem}.tiff")
+    row["epithelium_mask_path"] = str(epithelium_folder / f"{stem}.tiff")
     for key, subfolder in QC_SUBFOLDERS.items():
         row[f"{key}_mask_path"] = str(qc_folder / subfolder / f"{stem}.tiff")
 
     return row
 
 
-def create_tissue_roi(tile_extent: int) -> Polygon:
+def create_half_roi(tile_extent: int) -> Polygon:
     offset = tile_extent // 4
     size = tile_extent // 2
     return box(offset, offset, offset + size, offset + size)
@@ -142,6 +144,7 @@ def tile(
                 "clarity": row.get("clarity"),
                 "fold": row.get("fold"),
                 "tissue_mask_path": row["tissue_mask_path"],
+                "epithelium_mask_path": row["epithelium_mask_path"],
                 "blur_mask_path": row["blur_mask_path"],
                 "artifacts_mask_path": row["artifacts_mask_path"],
                 **{
@@ -161,11 +164,12 @@ def tile(
 def extract_coverages(row: dict[str, Any], *cols: str) -> dict[str, Any]:
     for c in cols:
         overlap = row[f"{c}_overlap"]
-        zero_overlap = overlap.get("0", 0)
-        if zero_overlap is None:
-            row[c] = 1.0
-        else:
-            row[c] = 1.0 - zero_overlap
+        expectation = 0.0
+        for key, value in overlap.items():
+            if value is None:
+                continue
+            expectation += int(key) * value
+        row[c] = expectation
 
     return row
 
@@ -197,6 +201,7 @@ def tiling(
     df: pd.DataFrame,
     qc_folder: Path,
     tissue_folder: Path,
+    epithelium_folder: Path,
     annot_folder: Path,
     tile_extent: int,
     stride: int,
@@ -221,23 +226,23 @@ def tiling(
     if "clarity" in df.columns:
         slides = slides.map(add_clarity, fn_args=(df,))  # pyright: ignore[reportArgumentType]
 
-    tissue_roi = create_tissue_roi(tile_extent)
+    half_roi = create_half_roi(tile_extent)
     full_roi = create_full_roi(tile_extent)
 
     tiles = (
         slides.map(
             add_mask_paths,  # pyright: ignore[reportArgumentType]
-            fn_args=(qc_folder, tissue_folder),
+            fn_args=(qc_folder, tissue_folder, epithelium_folder),
         )
         .flat_map(
             tile,
-            fn_args=(full_roi, annot_folder, target_groups),
+            fn_args=(half_roi, annot_folder, target_groups),
         )
         .repartition(target_num_rows_per_block=4096)
         .with_column(
             "tissue_overlap",
             tile_overlay_overlap(
-                tissue_roi,
+                half_roi,
                 col("tissue_mask_path"),
                 col("tile_x"),
                 col("tile_y"),
@@ -269,7 +274,18 @@ def tiling(
                 col("mpp_y"),
             ),  # pyright: ignore[reportCallIssue]
         )
-        .map(extract_coverages, fn_args=("blur", "artifacts"))  # pyright: ignore[reportArgumentType]
+        .with_column(
+            "epithelium_overlap",
+            tile_overlay_overlap(
+                half_roi,
+                col("epithelium_mask_path"),
+                col("tile_x"),
+                col("tile_y"),
+                col("mpp_x"),
+                col("mpp_y"),
+            ),  # pyright: ignore[reportCallIssue]
+        )
+        .map(extract_coverages, fn_args=("blur", "artifacts", "epithelium"))  # pyright: ignore[reportArgumentType]
         .map(select, fn_args=(target_groups,))  # pyright: ignore[reportArgumentType]
     )
 
@@ -280,11 +296,12 @@ def tiling(
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    qc_folder = Path(download_artifacts(config.dataset.mlflow_uris.qc))
-    tissue_folder = Path(download_artifacts(config.dataset.mlflow_uris.tissue))
-    annot_folder = Path(config.dataset.annot_path)
+    qc_folder = Path(download_artifacts(config.mlflow_uris.qc))
+    tissue_folder = Path(download_artifacts(config.mlflow_uris.tissue))
+    epithelium_folder = Path(download_artifacts(config.mlflow_uris.epithelium))
+    annot_folder = Path(config.annot_path)
 
-    for name, split_uri in config.dataset.mlflow_uris.splits.items():
+    for name, split_uri in config.mlflow_uris.splits.items():
         split = pd.read_csv(
             mlflow.artifacts.download_artifacts(split_uri), index_col="slide_id"
         )
@@ -293,6 +310,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             split,
             qc_folder=qc_folder,
             tissue_folder=tissue_folder,
+            epithelium_folder=epithelium_folder,
             annot_folder=annot_folder,
             tile_extent=config.tile_extent,
             stride=config.stride,

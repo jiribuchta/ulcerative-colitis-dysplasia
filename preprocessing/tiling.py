@@ -185,6 +185,7 @@ def select(row: dict[str, Any], target_labels: list[str]) -> dict[str, Any]:
         "y": row["tile_y"],
         "tissue": row["tissue"],
         "annotation": row["annotation"],
+        "epithelium": row["epithelium"],
         "blur": row["blur"],
         "artifacts": row["artifacts"],
         "clarity": row.get("clarity"),

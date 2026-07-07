@@ -169,7 +169,7 @@ def extract_coverages(row: dict[str, Any], *cols: str) -> dict[str, Any]:
             if value is None:
                 continue
             expectation += int(key) * value
-        row[c] = expectation
+        row[c] = expectation / 255
 
     return row
 

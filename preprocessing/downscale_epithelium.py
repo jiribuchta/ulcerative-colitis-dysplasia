@@ -17,7 +17,7 @@ def process_slide(slide_path: Path, downscale: int, output_path: Path) -> None:
     image = cast("pyvips.Image", pyvips.Image.new_from_file(slide_path))
     mpp_x, mpp_y = 1000 / image.xres, 1000 / image.yres
 
-    mask = image.shrink(1 / downscale, 1 / downscale, ceil=False)
+    mask = image.shrink(hshrink=1 / downscale, vshrink=1 / downscale, ceil=False)
 
     write_big_tiff(
         mask,

@@ -80,7 +80,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     for percentage_col in [*config.percentage_cols, "outlines"]:
         (output_path / str(percentage_col)).mkdir(parents=True, exist_ok=True)
 
-    for name, uri in config.dataset.mlflow_uris.tiled_filtered.items():
+    for name, uri in config.dataset.mlflow_uris.tiling_filtered.items():
         local_path = Path(mlflow.artifacts.download_artifacts(uri))
 
         slides = pd.read_parquet(local_path / "slides")

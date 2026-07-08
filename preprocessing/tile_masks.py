@@ -26,11 +26,13 @@ def process_slide(
     tiles: pd.DataFrame,
     level: int,
 ) -> None:
-    slide_tiles = tiles[tiles["slide_id"] == slide.id]
-
+    slide_tiles = tiles[tiles["slide_id"] == slide.id].copy()
     with OpenSlide(slide["path"]) as slide_wsi:
         mask_extent_x, mask_extent_y = slide_wsi.level_dimensions[level]
         mpp_x, mpp_y = slide_wsi.slide_resolution(level)
+
+    slide_tiles["x"] = (slide_tiles["x"] / mpp_x * slide.mpp_x).astype(int)
+    slide_tiles["y"] = (slide_tiles["y"] / mpp_y * slide.mpp_y).astype(int)
 
     for percentage_col in [*percentage_cols]:
         filename = f"{Path(slide.path).stem}.tiff"
@@ -47,10 +49,9 @@ def process_slide(
             slide.stride_x,
         )
 
-        tiles_to_use = slide_tiles
-        xs = torch.tensor(tiles_to_use["x"].values)
-        ys = torch.tensor(tiles_to_use["y"].values)
-        data = torch.tensor(tiles_to_use[percentage_col].values)
+        xs = torch.tensor(slide_tiles["x"].values)
+        ys = torch.tensor(slide_tiles["y"].values)
+        data = torch.tensor(slide_tiles[percentage_col].values)
         builder.update(data, xs, ys)
         builder.save()
 

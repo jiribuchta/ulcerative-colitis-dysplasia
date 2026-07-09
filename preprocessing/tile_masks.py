@@ -63,6 +63,7 @@ def process_slide(
         slide_tiles,
         tile_extent=(tile_extent_x, tile_extent_y),
         size=(mask_extent_x, mask_extent_y),
+        outline_width=1,
     )
 
     mask_path = output_path / "outlines" / f"{Path(slide.path).stem}.tiff"

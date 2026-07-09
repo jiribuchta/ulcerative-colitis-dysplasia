@@ -33,6 +33,9 @@ def process_slide(
 
     slide_tiles["x"] = (slide_tiles["x"] / mpp_x * slide.mpp_x).astype(int)
     slide_tiles["y"] = (slide_tiles["y"] / mpp_y * slide.mpp_y).astype(int)
+    tile_extent_x = int(slide.tile_extent_x / mpp_x * slide.mpp_x)
+    tile_extent_y = int(slide.tile_extent_y / mpp_y * slide.mpp_y)
+    stride_x = int(slide.stride_x / mpp_x * slide.mpp_x)
 
     for percentage_col in [*percentage_cols]:
         filename = f"{Path(slide.path).stem}.tiff"
@@ -45,8 +48,8 @@ def process_slide(
             mask_extent_y,
             mpp_x,
             mpp_y,
-            slide.tile_extent_x,
-            slide.stride_x,
+            tile_extent_x,
+            stride_x
         )
 
         xs = torch.tensor(slide_tiles["x"].values)
@@ -58,7 +61,7 @@ def process_slide(
     # Outlines
     mask = tile_mask(
         slide_tiles,
-        tile_extent=(slide.tile_extent_x, slide.tile_extent_y),
+        tile_extent=(tile_extent_x, tile_extent_y),
         size=(mask_extent_x, mask_extent_y),
     )
 

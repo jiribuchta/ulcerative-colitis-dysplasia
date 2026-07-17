@@ -1,0 +1,6 @@
+defaults:
+  - /dataset/processed@_here_
+  - _self_
+
+mlflow_uris:
+  epithelium: mlflow-artifacts:/111/f07359f01bca4019bf145e899cab306e/artifacts/epithelium_masks

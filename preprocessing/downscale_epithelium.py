@@ -33,13 +33,10 @@ def process_slide(slide_path: Path, downscale: int, output_path: Path) -> None:
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    # epithelium_folder = Path(
-    #     mlflow.artifacts.download_artifacts(
-    #         artifact_uri=config.dataset.mlflow_uris.epithelium
-    #     )
-    # )
     epithelium_folder = Path(
-        "/mnt/projects/inflammatory_bowel_disease/ulcerative_colitis_dysplasia/epithelium_masks"
+        mlflow.artifacts.download_artifacts(
+            artifact_uri=config.dataset.mlflow_uris.epithelium
+        )
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -62,7 +59,5 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
 
 if __name__ == "__main__":
-    # with ray.init(runtime_env={"excludes": [".git", ".venv"]}):  # type: ignore[call-arg]
-    #     main()
-    with ray.init():
+    with ray.init(runtime_env={"excludes": [".git", ".venv"]}):  # type: ignore[call-arg]
         main()

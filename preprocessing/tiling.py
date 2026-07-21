@@ -2,7 +2,7 @@ import re
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any, TypedDict, cast
+from typing import Any, cast
 
 import hydra
 import mlflow.artifacts
@@ -25,7 +25,7 @@ from shapely.geometry.base import BaseGeometry
 QC_BLUR_MEAN_COLUMN = "mean_coverage(Piqe)"
 QC_ARTIFACTS_MEAN_COLUMN = "mean_coverage(ResidualArtifactsAndCoverage)"
 QC_SUBFOLDERS = {"blur": "blur_per_pixel", "artifacts": "artifacts_per_pixel"}
- 
+
 
 def qc_agg(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
     qc_df = cast("pd.Series", df.loc[Path(row["path"]).stem])
@@ -299,13 +299,19 @@ def tiling(
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
     qc_folder = Path(download_artifacts(config.dataset.mlflow_uris.qc))
     tissue_folder = Path(download_artifacts(config.dataset.mlflow_uris.tissue))
-    epithelium_folder = Path(download_artifacts(config.dataset.mlflow_uris.epithelium))
     annot_folder = Path(config.dataset.annot_path)
+    epithelium_folder = Path(config.dataset.epithelium)
+
+    selected_slides = {"8040_21_HE_0", "8859_22_HE_0", "9746_19_HE_0"}
 
     for name, split_uri in config.dataset.mlflow_uris.splits.items():
+        if name != "test_preliminary":
+            continue
+
         split = pd.read_csv(
             mlflow.artifacts.download_artifacts(split_uri), index_col="slide_id"
         )
+        split = split.loc[split.index.isin(selected_slides)]
 
         ds_slides, ds_tiles = tiling(
             split,

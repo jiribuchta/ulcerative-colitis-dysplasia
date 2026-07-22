@@ -1,9 +1,9 @@
+import shutil
 import tempfile
 from pathlib import Path
 from typing import cast
 
 import hydra
-import mlflow.artifacts
 import pyvips
 import ray
 from omegaconf import DictConfig
@@ -33,11 +33,7 @@ def process_slide(slide_path: Path, downscale: int, output_path: Path) -> None:
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    epithelium_folder = Path(
-        mlflow.artifacts.download_artifacts(
-            artifact_uri=config.dataset.mlflow_uris.epithelium
-        )
-    )
+    epithelium_folder = Path(config.dataset.epithelium)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
@@ -54,6 +50,10 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             },
             max_concurrent=config.max_concurrent,
         )
+
+        output_dir = Path(config.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(tmpdir_path, output_dir, dirs_exist_ok=True)
 
         logger.log_artifacts(str(tmpdir_path), config.mlflow_artifact_path)
 

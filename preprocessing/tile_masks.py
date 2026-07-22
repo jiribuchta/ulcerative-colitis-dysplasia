@@ -1,7 +1,6 @@
 """Script for creating outlines of the tiles and also masks based on tiling percentages."""
 
 from pathlib import Path
-from typing import Any
 
 import hydra
 import mlflow.artifacts
@@ -9,13 +8,13 @@ import numpy as np
 import pandas as pd
 import pyvips
 import ray
-import torch
 from omegaconf import DictConfig
-from ratiopath.openslide import OpenSlide
-from rationai.masks import process_items, tile_mask, write_big_tiff
-from rationai.masks.mask_builders import ScalarMaskBuilder
+from rationai.masks import process_items, tile_mask
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
+from ratiopath.masks import write_big_tiff
+from ratiopath.masks.mask_builders import MaskBuilder
+from ratiopath.openslide import OpenSlide
 
 
 @ray.remote
@@ -31,32 +30,61 @@ def process_slide(
         mask_extent_x, mask_extent_y = slide_wsi.level_dimensions[level]
         mpp_x, mpp_y = slide_wsi.slide_resolution(level)
 
-    slide_tiles["x"] = (slide_tiles["x"] / mpp_x * slide.mpp_x).astype(int)
-    slide_tiles["y"] = (slide_tiles["y"] / mpp_y * slide.mpp_y).astype(int)
     tile_extent_x = int(slide.tile_extent_x / mpp_x * slide.mpp_x)
     tile_extent_y = int(slide.tile_extent_y / mpp_y * slide.mpp_y)
     stride_x = int(slide.stride_x / mpp_x * slide.mpp_x)
+    stride_y = int(slide.stride_y / mpp_y * slide.mpp_y)
+
+    # Convert to target-level pixels using the MPP ratio, then snap to the target
+    # stride grid so the outlines and MaskBuilder use the same tile positions.
+    slide_tiles["x"] = (
+        slide_tiles["x"] * slide.mpp_x / mpp_x / stride_x
+    ).round().astype(int) * stride_x
+    slide_tiles["y"] = (
+        slide_tiles["y"] * slide.mpp_y / mpp_y / stride_y
+    ).round().astype(int) * stride_y
+
+    source_extents = np.array([mask_extent_y, mask_extent_x], dtype=np.int64)
+    source_tile_extent = np.array([tile_extent_y, tile_extent_x], dtype=np.int64)
+    stride = np.array([stride_y, stride_x], dtype=np.int64)
+
+    # MaskBuilder scales the mask down if tiles overshoot the slide edge. To match
+    # the old ScalarMaskBuilder behavior (and stay aligned with the outlines mask),
+    # size the accumulator to the full tile span and crop back to the slide size.
+    num_tiles = (
+        np.ceil(np.maximum(0, source_extents - source_tile_extent) / stride).astype(
+            np.int64
+        )
+        + 1
+    )
+    span = (num_tiles - 1) * stride + source_tile_extent
 
     for percentage_col in [*percentage_cols]:
         filename = f"{Path(slide.path).stem}.tiff"
         save_dir = output_path / percentage_col
+        save_dir.mkdir(parents=True, exist_ok=True)
+        save_path = save_dir / filename
 
-        builder = ScalarMaskBuilder(
-            save_dir,
-            filename,
-            mask_extent_x,
-            mask_extent_y,
-            mpp_x,
-            mpp_y,
-            tile_extent_x,
-            stride_x
+        builder = MaskBuilder(
+            source_extents=tuple(span),
+            source_tile_extent=tuple(source_tile_extent),
+            output_tile_extent=tuple(source_tile_extent),
+            stride=tuple(stride),
         )
 
-        xs = torch.tensor(slide_tiles["x"].values)
-        ys = torch.tensor(slide_tiles["y"].values)
-        data = torch.tensor(slide_tiles[percentage_col].values)
-        builder.update(data, xs, ys)
-        builder.save()
+        coords = np.stack(
+            [slide_tiles["y"].to_numpy(), slide_tiles["x"].to_numpy()], axis=1
+        )
+        data = slide_tiles[percentage_col].to_numpy(dtype=np.float32).reshape(-1, 1)
+        builder.update_batch(data, coords)
+
+        result = builder.finalize()
+        mask = result["mask"][:, :mask_extent_y, :mask_extent_x]
+        mask_vips = pyvips.Image.new_from_array(mask.transpose(1, 2, 0))
+        mask_vips = (mask_vips * 255).cast(pyvips.BandFormat.UCHAR)
+        write_big_tiff(mask_vips, save_path, mpp_x, mpp_y)
+
+        builder.cleanup()
 
     # Outlines
     mask = tile_mask(
@@ -86,11 +114,13 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         (output_path / str(percentage_col)).mkdir(parents=True, exist_ok=True)
 
     for name, uri in config.dataset.mlflow_uris.tiling_filtered.items():
+        if name != "test_preliminary":
+            continue
+
         local_path = Path(mlflow.artifacts.download_artifacts(uri))
 
         slides = pd.read_parquet(local_path / "slides")
         tiles = pd.read_parquet(local_path / "tiles")
-
 
         process_items(
             (slide for _, slide in slides.iterrows()),

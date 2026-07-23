@@ -12,7 +12,6 @@ from mlflow.artifacts import download_artifacts
 from omegaconf import DictConfig
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
-from ratiopath.parsers.empaia_parser import EMPAIAParser
 from ratiopath.ray import read_slides
 from ratiopath.tiling import grid_tiles, tile_annotations, tile_overlay_overlap
 from ratiopath.tiling.utils import row_hash
@@ -20,6 +19,8 @@ from ray.data.expressions import col
 from shapely import Polygon
 from shapely.geometry import box
 from shapely.geometry.base import BaseGeometry
+
+from preprocessing.empaia_parser import EMPAIAParser
 
 
 QC_BLUR_MEAN_COLUMN = "mean_coverage(Piqe)"
@@ -86,11 +87,14 @@ def generate_generators(
     class_generators = []
     parser = EMPAIAParser(annot_path)
     for label in target_groups:
-        polygons = [
-            p
-            for p in parser.get_polygons(name=rf"^{re.escape(label)}$")
-            if not p.is_empty and p.area > 0
-        ]
+        polygons = []
+        for p in parser.get_polygons(name=rf"^{re.escape(label)}$"):
+            if p.is_empty or p.area == 0:
+                continue
+            if not p.is_valid:
+                p = p.buffer(0)
+            if not p.is_empty and p.area > 0:
+                polygons.append(p)
         if not polygons:
             class_generators.append(Polygon() for _ in coords_list)
         else:

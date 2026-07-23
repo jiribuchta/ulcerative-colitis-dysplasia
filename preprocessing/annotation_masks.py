@@ -37,12 +37,14 @@ def create_annotation_mask(
     """
     parser = EMPAIAParser(annot_path)
     width, height = mask_dim
+
     shapes: list[tuple] = []
 
     for label, value in target_groups.items():
         for poly in parser.get_polygons(name=rf"^{re.escape(label)}$"):
             if poly.is_empty or poly.area == 0:
                 continue
+
             scaled = shapely_scale(poly, xfact=scale, yfact=scale, origin=(0, 0))
             if not scaled.is_valid:
                 scaled = scaled.buffer(0)
@@ -104,7 +106,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     dataset_path = Path(
         mlflow.artifacts.download_artifacts(artifact_uri=config.dataset_uri)
     )
-    annot_path = Path(config.annot_path)
+    annot_path = Path(mlflow.artifacts.download_artifacts(config.annot_uri))
     output_base = Path(config.output_dir)
 
     df = pd.read_csv(dataset_path)

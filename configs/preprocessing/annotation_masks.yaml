@@ -7,7 +7,7 @@ target_groups:
   "HG Dysplasia": 128
 
 dataset_uri: mlflow-artifacts:/111/2cb0c5eb7a484b37bc4c52cbc07e3725/artifacts/dataset.csv
-annot_path: /mnt/data/IKEM/colon/IBD_AI/dysplasia/annotations
+annot_uri: mlflow-artifacts:/111/69d8ff5d27ec468b9e1d31094392ba71/artifacts/annotations
 output_dir: /mnt/projects/inflammatory_bowel_disease/ulcerative_colitis_dysplasia/annotation_masks
 
 metadata:

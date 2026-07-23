@@ -2,4 +2,4 @@ defaults:
   - /dataset/processed@_here_
   - _self_
 
-epithelium: ${project_path}/epithelium_masks_debug/raw
+epithelium: ${project_path}/epithelium_masks/raw

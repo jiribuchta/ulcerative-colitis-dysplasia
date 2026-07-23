@@ -15,7 +15,6 @@ async def segment_epithel(
     slides: list[str], tissue_masks_dir: Path, output_dir: Path, max_concurrent: int
 ) -> None:
     async with AsyncClient(
-        models_base_url="http://rayservice-model-fix-serve-svc.rationai-jobs-ns.svc.cluster.local:8000",
         timeout=3000,
     ) as client:
         pending: set[asyncio.Task[str]] = set()

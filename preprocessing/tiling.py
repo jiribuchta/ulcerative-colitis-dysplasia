@@ -306,16 +306,10 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     annot_folder = Path(config.dataset.annot_path)
     epithelium_folder = Path(config.dataset.epithelium)
 
-    selected_slides = {"8040_21_HE_0", "8859_22_HE_0", "9746_19_HE_0"}
-
     for name, split_uri in config.dataset.mlflow_uris.splits.items():
-        if name != "test_preliminary":
-            continue
-
         split = pd.read_csv(
             mlflow.artifacts.download_artifacts(split_uri), index_col="slide_id"
         )
-        split = split.loc[split.index.isin(selected_slides)]
 
         ds_slides, ds_tiles = tiling(
             split,

@@ -3,7 +3,7 @@ from kube_jobs import storage, submit_job
 
 submit_job(
     job_name="ulcerative-colitis-dysplasia-create-dataset",
-    username="...",
+    username="jiribuchta",
     public=False,
     cpu=8,
     memory="16Gi",
@@ -12,7 +12,7 @@ submit_job(
         "git clone https://github.com/RationAI/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",
         "uv sync --frozen",
-        "uv run python -m preprocessing.create_dataset +dataset=...",
+        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 && uv run python -u -m preprocessing.create_dataset +dataset=raw",
     ],
-    storage=[storage.secure.DATA],
+    storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

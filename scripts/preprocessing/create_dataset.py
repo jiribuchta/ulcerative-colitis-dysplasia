@@ -9,10 +9,10 @@ submit_job(
     memory="16Gi",
     shm="16Gi",
     script=[
-        "git clone https://github.com/RationAI/ulcerative-colitis-dysplasia.git workdir",
+        "git clone https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git@feature/prov workdir",
         "cd workdir",
         "uv sync --frozen",
-        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 && uv run python -u -m preprocessing.create_dataset +dataset=raw",
+        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 MLFLOW_USER=jiribuchta && uv run python -u -m preprocessing.create_dataset +dataset=raw",
     ],
     storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

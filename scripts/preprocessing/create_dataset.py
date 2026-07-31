@@ -9,7 +9,7 @@ submit_job(
     memory="16Gi",
     shm="16Gi",
     script=[
-        "git clone --branch feature/prov https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git workdir",
+        "git clone https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",
         "uv sync",
         "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 MLFLOW_USER=jiribuchta && uv run python -u -m preprocessing.create_dataset +dataset=raw",

@@ -31,11 +31,9 @@ dependencies = [
 
 [tool.uv.sources]
 rationai-sdk = { git = "https://gitlab.ics.muni.cz/rationai/infrastructure/rationai-sdk-python.git" }
-rationai-kube-jobs = { git = "ssh://git@gitlab.ics.muni.cz/rationai/infrastructure/kube-jobs" }
 rationai-mlkit = { git = "https://gitlab.ics.muni.cz/rationai/digital-pathology/libraries/mlkit.git", branch = "feature/prov" }
 rationai-masks = { git = "https://gitlab.ics.muni.cz/rationai/digital-pathology/libraries/masks.git" }
 ratiopath = { git = "https://github.com/RationAI/ratiopath.git" }
 
 [dependency-groups]
 dev = ["mypy", "ruff", "ipykernel"]
-job = ["rationai-kube-jobs"]

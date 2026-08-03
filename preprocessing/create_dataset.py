@@ -128,6 +128,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         _log_missing_items(missing_slides, "missing_slides.txt")
 
         # ── Log dataset metadata as tags ─────────────────────
+        num_samples = len(dataset)
+        num_positive = int((dataset["annot_path"] != "NEGATIVE").sum())
+        num_negative = num_samples - num_positive
 
         file_sizes: dict[str, int] = {}
         for _, row in dataset.iterrows():
@@ -135,6 +138,13 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             fpath = Path(row["slide_path"])
             file_sizes[basename] = int(fpath.stat().st_size) if fpath.exists() else -1
 
+        mlflow.log_params(
+            {
+                "num_samples": num_samples,
+                "num_positive": num_positive,
+                "num_negative": num_negative,
+            }
+        )
         mlflow.set_tags(
             {
                 "dataset_name": "ulcerative-colitis-dysplasia",
@@ -155,6 +165,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             dataset_name="ulcerative-colitis-dysplasia",
             version="1.0.0",
             dataset_root=str(config.data_path),
+            num_samples=num_samples,
+            num_positive=num_positive,
+            num_negative=num_negative,
             file_sizes=file_sizes,
             manifest_path=str(output_path),
         )

@@ -103,7 +103,7 @@ def create_dataset(
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
     # ── Environment + user provenance ────────────────────────
-    capture_environment(snapshot_env=False)
+    capture_environment(snapshot_env=True)
 
     dataset, missing_slides = create_dataset(
         config.data_path,

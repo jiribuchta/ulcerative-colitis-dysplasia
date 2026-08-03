@@ -147,4 +147,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    ray.init(runtime_env={"excludes": [".git", ".venv"]})
+    try:
+        main()
+    finally:
+        ray.shutdown()

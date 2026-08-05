@@ -41,14 +41,12 @@ class EmbedTiles:
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    for name, split_uri in config.dataset.mlflow_uris.tiling.items():
+    for name, split_uri in config.dataset.mlflow_uris.tiling_filtered.items():
         folder = Path(mlflow.artifacts.download_artifacts(split_uri))
         slides = pd.read_parquet(folder / "slides")
         tiles = pd.read_parquet(folder / "tiles")
 
-        slide_info = slides.set_index("id")[
-            ["path", "level", "tile_extent_x", "tile_extent_y"]
-        ]
+        slide_info = slides.set_index("id")[["level", "tile_extent_x", "tile_extent_y"]]
         tiles_enriched = tiles.join(slide_info, on="slide_id")
 
         ds = ray.data.from_arrow(

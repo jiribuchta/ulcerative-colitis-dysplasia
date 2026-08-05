@@ -2,7 +2,7 @@ from kube_jobs import storage, submit_job
 
 submit_job(
     job_name="ulcerative-colitis-dysplasia-epithelium-masks",
-    username="AdamK",
+    username="...",
     public=False,
     cpu=8,
     memory="16Gi",

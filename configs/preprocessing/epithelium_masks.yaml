@@ -7,4 +7,4 @@ only_missing: true
 
 metadata:
   run_name: "Epithelium masks Creation"
-  description: "Create tissue masks for dysplasia project"
+  description: "Create epithelium masks for dysplasia project"

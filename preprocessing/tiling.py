@@ -165,15 +165,28 @@ def tile(
     ]
 
 
-def extract_coverages(row: dict[str, Any], *cols: str) -> dict[str, Any]:
+def extract_coverages(
+    row: dict[str, Any], *cols: str, thresholds: dict[str, float] | None = None
+) -> dict[str, Any]:
+    thresholds = thresholds or {}
     for c in cols:
         overlap = row[f"{c}_overlap"]
-        expectation = 0.0
-        for key, value in overlap.items():
-            if value is None:
-                continue
-            expectation += int(key) * value
-        row[c] = expectation / 255
+        thr = thresholds.get(c)
+        if thr is not None:
+            # Fraction of tile pixels above the probability threshold. The masks
+            # are stored as uint8 (0-255), so normalise the pixel value to 0-1.
+            row[c] = sum(
+                value
+                for key, value in overlap.items()
+                if value is not None and int(key) / 255 > thr
+            )
+        else:
+            expectation = 0.0
+            for key, value in overlap.items():
+                if value is None:
+                    continue
+                expectation += int(key) * value
+            row[c] = expectation / 255
 
     return row
 
@@ -212,6 +225,7 @@ def tiling(
     stride: int,
     mpp: float,
     tissue_threshold: float,
+    epithelium_threshold: float,
     target_groups: list[str],
 ) -> tuple[ray.data.Dataset, ray.data.Dataset]:
     qc_df = pd.read_csv(qc_folder / "qc_metrics.csv", index_col="slide_name")
@@ -290,7 +304,11 @@ def tiling(
                 col("mpp_y"),
             ),  # pyright: ignore[reportCallIssue]
         )
-        .map(extract_coverages, fn_args=("blur", "artifacts", "epithelium"))  # pyright: ignore[reportArgumentType]
+        .map(
+            extract_coverages,
+            fn_args=("blur", "artifacts", "epithelium"),  # pyright: ignore[reportArgumentType]
+            fn_kwargs={"thresholds": {"epithelium": epithelium_threshold}},
+        )
         .map(select, fn_args=(target_groups,))  # pyright: ignore[reportArgumentType]
     )
 
@@ -321,6 +339,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             stride=config.stride,
             mpp=config.mpp,
             tissue_threshold=config.tissue_threshold,
+            epithelium_threshold=config.epithelium_threshold,
             target_groups=list(config.target_groups),
         )
 

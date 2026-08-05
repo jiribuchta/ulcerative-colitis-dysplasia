@@ -44,6 +44,14 @@ def process_slide(
         slide_tiles["y"] * slide.mpp_y / mpp_y / stride_y
     ).round().astype(int) * stride_y
 
+    in_bounds = (
+        (slide_tiles["x"] >= 0)
+        & (slide_tiles["y"] >= 0)
+        & (slide_tiles["x"] + tile_extent_x <= mask_extent_x)
+        & (slide_tiles["y"] + tile_extent_y <= mask_extent_y)
+    )
+    slide_tiles = slide_tiles.loc[in_bounds].copy()
+
     source_extents = np.array([mask_extent_y, mask_extent_x], dtype=np.int64)
     source_tile_extent = np.array([tile_extent_y, tile_extent_x], dtype=np.int64)
     stride = np.array([stride_y, stride_x], dtype=np.int64)
@@ -76,7 +84,8 @@ def process_slide(
             [slide_tiles["y"].to_numpy(), slide_tiles["x"].to_numpy()], axis=1
         )
         data = slide_tiles[percentage_col].to_numpy(dtype=np.float32).reshape(-1, 1)
-        builder.update_batch(data, coords)
+        if len(coords) > 0:
+            builder.update_batch(data, coords)
 
         result = builder.finalize()
         mask = result["mask"][:, :mask_extent_y, :mask_extent_x]
@@ -113,10 +122,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     for percentage_col in [*config.percentage_cols, "outlines"]:
         (output_path / str(percentage_col)).mkdir(parents=True, exist_ok=True)
 
-    for name, uri in config.dataset.mlflow_uris.tiling_filtered.items():
-        if name != "test_preliminary":
-            continue
-
+    for _name, uri in config.dataset.mlflow_uris.tiling_filtered.items():
         local_path = Path(mlflow.artifacts.download_artifacts(uri))
 
         slides = pd.read_parquet(local_path / "slides")

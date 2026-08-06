@@ -7,6 +7,7 @@ from mlflow.artifacts import download_artifacts
 from omegaconf import DictConfig
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
+from rationai.mlkit.provenance import log_split_provenance
 from ratiopath.model_selection import train_test_split
 from sklearn.model_selection import GroupKFold
 
@@ -55,6 +56,17 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     )
 
     train = add_folds(train, config.n_folds)
+
+    # ── Provenance ─────────────────────────────────────────
+    log_split_provenance(
+        splits={
+            "train": train,
+            "test_preliminary": test_preliminary,
+            "test_final": test_final,
+        },
+        logger=logger,
+        config=config,
+    )
 
     with TemporaryDirectory() as tmpdir:
         for name, df in (

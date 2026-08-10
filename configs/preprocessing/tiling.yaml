@@ -4,7 +4,6 @@ mpp: ???
 tile_extent: ???
 stride: ???
 tissue_threshold: 0.5
-epithelium_threshold: 0.5
 mlflow_artifact_path: tiling
 row_per_file: 50_000
 target_groups:

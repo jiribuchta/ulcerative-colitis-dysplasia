@@ -5,7 +5,6 @@ defaults:
 mpp: 0.52
 tile_extent: 224
 stride: 112
-epithelium_threshold: 0.34
 
 mlflow_uris:
   tiling: 

@@ -5,7 +5,7 @@ import hydra
 import mlflow.artifacts
 import pandas as pd
 from omegaconf import DictConfig
-from rationai import AsyncClient
+from rationai.client import AsyncClient
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
 from tqdm import tqdm

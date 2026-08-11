@@ -55,7 +55,9 @@ class Embeddings(MetaTiledSlides[Sample]):
                 get_label(cast("dict[str, Any]", tile), self.mode)
                 for slide in self.slides
                 for tile in filter_tiles(
-                    self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
+                    self.filter_tiles_by_slide(dict(slide)["id"]),
+                    self.thresholds,
+                    self.min_thresholds,
                 )
             ]
         )
@@ -65,11 +67,13 @@ class Embeddings(MetaTiledSlides[Sample]):
         uris: Iterable[str] | str,
         mode: LabelMode | str,
         thresholds: dict[str, float] | None = None,
+        min_thresholds: dict[str, float] | None = None,
         val_fold: int | None = None,
         is_val: bool = False,
     ) -> None:
         self.mode = LabelMode(mode)
         self.thresholds = thresholds or {}
+        self.min_thresholds = min_thresholds or {}
         self.val_fold = val_fold
         self.is_val = is_val
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
@@ -80,7 +84,9 @@ class Embeddings(MetaTiledSlides[Sample]):
             _Embeddings(
                 slide_metadata=dict(slide),
                 tiles=filter_tiles(
-                    self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
+                    self.filter_tiles_by_slide(dict(slide)["id"]),
+                    self.thresholds,
+                    self.min_thresholds,
                 ),
                 mode=self.mode,
                 include_labels=True,
@@ -94,8 +100,10 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
         self,
         uris: Iterable[str] | str,
         thresholds: dict[str, float] | None = None,
+        min_thresholds: dict[str, float] | None = None,
     ) -> None:
         self.thresholds = thresholds or {}
+        self.min_thresholds = min_thresholds or {}
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
 
     def generate_datasets(self) -> Iterable[_Embeddings[PredictSample]]:
@@ -104,7 +112,9 @@ class EmbeddingsPredict(MetaTiledSlides[PredictSample]):
             _Embeddings(
                 slide_metadata=dict(slide),
                 tiles=filter_tiles(
-                    self.filter_tiles_by_slide(dict(slide)["id"]), self.thresholds
+                    self.filter_tiles_by_slide(dict(slide)["id"]),
+                    self.thresholds,
+                    self.min_thresholds,
                 ),
                 include_labels=False,
             )

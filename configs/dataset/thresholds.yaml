@@ -1,3 +1,5 @@
 thresholds:
   blur: 0.25
   artifacts: 0.25
+min_thresholds:
+  epithelium: 0.34

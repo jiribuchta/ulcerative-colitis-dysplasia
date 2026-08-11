@@ -8,18 +8,6 @@ splits:
   - test_preliminary
   - test_final
 
-# Filtering mode:
-#   "annotated_column" - keep only tiles from the annotated tissue column
-#                        (handles multi-column slides).
-#   "positive_negative" - keep all tiles from negative slides and only
-#                         positive tiles from annotated slides.
-filter_mode: "annotated_column"
-
-# Key under config.mlflow_uris that points to the input tiles to filter.
-# Defaults to "tiling" for annotated_column mode and "filtered_tiles" for
-# positive_negative mode.
-input_uri_key: "tiling"
-
 metadata:
   run_name: "Filter Tiles - ${dataset.tile_extent}px @ ${dataset.mpp}mpp"
   description: "Filter tiles for dysplasia project"

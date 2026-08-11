@@ -10,6 +10,27 @@ from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
 
 
+def mark_slide_origin(group: pd.DataFrame) -> pd.DataFrame:
+    """Add a ``from_negative_slide`` flag marking tiles from purely negative slides.
+
+    A slide is treated as purely negative when its total annotation coverage is
+    zero. All tiles from such a slide keep ``from_negative_slide = True``;
+    tiles from slides that carry any annotation get ``from_negative_slide =
+    False``.
+
+    Args:
+        group: A Pandas DataFrame containing all tiles for a specific
+            ``slide_id``. Must include an ``annotation`` column.
+
+    Returns:
+        A copy of ``group`` with the new ``from_negative_slide`` boolean column.
+    """
+    from_negative_slide = float(group["annotation"].sum()) == 0.0
+    group = group.copy()
+    group["from_negative_slide"] = from_negative_slide
+    return group
+
+
 def filter_slide_tiles_annotated_column(group: pd.DataFrame) -> pd.DataFrame:
     """Filters tiles within a single slide to keep only the tissue section (column)
     containing annotations.
@@ -43,7 +64,7 @@ def filter_slide_tiles_annotated_column(group: pd.DataFrame) -> pd.DataFrame:
         column, with the temporary cluster ID removed.
     """  # noqa: D205
     if group["annotation"].sum() == 0:
-        return group
+        return mark_slide_origin(group)
 
     sorted_group = group.sort_values("x").copy()
 
@@ -69,48 +90,13 @@ def filter_slide_tiles_annotated_column(group: pd.DataFrame) -> pd.DataFrame:
 
     filtered = sorted_group[sorted_group["_cluster"].isin(valid_ids)]
 
-    return filtered.drop(columns=["_cluster"])
-
-
-def filter_slide_tiles_positive_negative(group: pd.DataFrame) -> pd.DataFrame:
-    """Filter tiles so that final negative tiles come only from negative slides.
-
-    Logic:
-    1. If the slide has zero total annotations, all tiles are kept. These are
-       considered true-negative tiles from a negative slide.
-    2. If the slide has annotations, only tiles with ``annotation > 0`` are kept.
-       This removes negative tiles from annotated slides.
-
-    Args:
-        group: A Pandas DataFrame containing all tiles for a specific
-            ``slide_id``. Must include ``annotation`` and ``slide_id`` columns.
-
-    Returns:
-        A DataFrame containing only the tiles that should be kept according to
-        the positive/negative filtering rule.
-    """
-    if group["annotation"].sum() == 0:
-        return group
-
-    return group[group["annotation"] > 0]
-
-
-def get_filter_function(filter_mode: str):
-    """Return the tile-filtering function for the requested mode."""
-    if filter_mode == "annotated_column":
-        return filter_slide_tiles_annotated_column
-    if filter_mode == "positive_negative":
-        return filter_slide_tiles_positive_negative
-    raise ValueError(f"Unknown filter_mode: {filter_mode}")
+    return mark_slide_origin(filtered.drop(columns=["_cluster"]))
 
 
 @with_cli_args(["+preprocessing=filter_tiles"])
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    filter_fn = get_filter_function(config.filter_mode)
-    input_uri_key = config.get("input_uri_key", "tiling")
-
     with tempfile.TemporaryDirectory() as tmpdir:
         for split, split_uri in config.dataset.mlflow_uris.tiling.items():
             local_dir = Path(mlflow.artifacts.download_artifacts(split_uri))
@@ -130,7 +116,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
                 ds_slides, join_type="inner", num_partitions=2, on=["slide_id"]
             )
             filtered_ds_tiles = ds_tiles_with_path.groupby("slide_id").map_groups(
-                filter_fn, batch_format="pandas"
+                filter_slide_tiles_annotated_column, batch_format="pandas"
             )
 
             save_dir = Path(tmpdir) / split

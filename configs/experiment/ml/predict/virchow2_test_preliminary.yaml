@@ -9,6 +9,10 @@ mode: predict
 # shared embeddings datamodule interpolates it and requires a value to compose.
 val_fold: 0
 
+metadata:
+  run_name: "🔮 Inference - ${label_mode} - ${model_name} - ${dataset.tile_extent}px @ ${dataset.mpp}mpp - test_preliminary"
+  description: "Running inference with a trained virchow2 model on the held-out test_preliminary tiles."
+
 # Trained virchow2 checkpoint (mlflow artifact URI), passed at runtime.
 checkpoint: ???
 

@@ -17,7 +17,7 @@ from torchmetrics import (
 )
 
 from ml.modeling.decode_head import BaseClassifier
-from ml.typing import Input, PredictInput
+from ml.typing import Input, MetadataBatch, PredictInput
 
 
 class BaseModel(LightningModule):
@@ -108,8 +108,9 @@ class BaseModel(LightningModule):
 
         return predictions
 
-    def predict_step(self, batch: PredictInput) -> Tensor:
-        return self.activation(self(batch[0]))
+    def predict_step(self, batch: PredictInput) -> tuple[Tensor, MetadataBatch]:
+        predictions = self.activation(self(batch[0]))
+        return predictions, batch[1]
 
     def configure_optimizers(self) -> Optimizer:
         return AdamW(self.parameters(), self.lr)

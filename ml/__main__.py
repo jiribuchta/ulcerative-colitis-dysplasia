@@ -38,9 +38,15 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         ckpt = mlflow.artifacts.download_artifacts(str(ckpt))
 
     if config.mode == "predict":
+        model.predict_metadata = []
         outputs = trainer.predict(model, datamodule=data, ckpt_path=ckpt)
         if "predict_output" in config and config.predict_output is not None:
-            save_predictions(outputs, config.predict_output, config.label_mode)
+            save_predictions(
+                outputs,
+                model.predict_metadata,
+                config.predict_output,
+                config.label_mode,
+            )
             logger.log_artifact(config.predict_output, artifact_path="predictions")
             run = logger.experiment.get_run(logger.run_id)
             uri = (

@@ -27,6 +27,7 @@ class BaseModel(LightningModule):
         super().__init__()
         self.decode_head = decode_head
         self.lr = lr
+        self.predict_metadata: list[MetadataBatch] = []
 
         num_classes = self.decode_head.out_features
         self.criterion = BCEWithLogitsLoss()
@@ -108,9 +109,10 @@ class BaseModel(LightningModule):
 
         return predictions
 
-    def predict_step(self, batch: PredictInput) -> tuple[Tensor, MetadataBatch]:
+    def predict_step(self, batch: PredictInput) -> Tensor:
         predictions = self.activation(self(batch[0]))
-        return predictions, batch[1]
+        self.predict_metadata.append(batch[1])
+        return predictions
 
     def configure_optimizers(self) -> Optimizer:
         return AdamW(self.parameters(), self.lr)

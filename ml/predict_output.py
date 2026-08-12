@@ -20,24 +20,26 @@ def _class_names(mode: LabelMode | str) -> list[str]:
 
 
 def save_predictions(
-    outputs: list[tuple[Tensor, MetadataBatch]],
+    predictions: list[Tensor],
+    metadata: list[MetadataBatch],
     output_path: str,
     mode: LabelMode | str,
 ) -> None:
     """Flatten (predictions, metadata) batches into a per-tile parquet.
 
     Each row is one tile: ``slide_name``, ``x``, ``y`` plus one probability
-    column per class (order matches ``LabelMode``).
+    column per class (order matches ``LabelMode``). Predictions and metadata
+    are matched by batch position.
     """
     class_names = _class_names(mode)
     rows: list[dict[str, object]] = []
-    for predictions, metadata in outputs:
-        probs = predictions.detach().cpu().numpy()
+    for batch_predictions, batch_metadata in zip(predictions, metadata, strict=True):
+        probs = batch_predictions.detach().cpu().numpy()
         if probs.ndim == 1:
             probs = probs[:, None]
-        slide_names = metadata["slide_name"]
-        xs = [int(v) for v in metadata["x"].tolist()]
-        ys = [int(v) for v in metadata["y"].tolist()]
+        slide_names = batch_metadata["slide_name"]
+        xs = [int(v) for v in batch_metadata["x"].tolist()]
+        ys = [int(v) for v in batch_metadata["y"].tolist()]
         for i in range(probs.shape[0]):
             row: dict[str, object] = {
                 "slide_name": slide_names[i],

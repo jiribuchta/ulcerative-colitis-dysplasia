@@ -39,7 +39,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
     if config.mode == "predict":
         model.predict_metadata = []
-        outputs = trainer.predict(model, datamodule=data, ckpt_path=ckpt)
+        outputs = trainer.predict(
+            model, datamodule=data, ckpt_path=ckpt, return_predictions=True
+        )
         if "predict_output" in config and config.predict_output is not None:
             save_predictions(
                 outputs,

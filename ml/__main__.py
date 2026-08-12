@@ -10,7 +10,8 @@ from rationai.mlkit.lightning.loggers import MLFlowLogger
 
 from ml._mlflow_compat import apply_mlflow_compat_patch
 from ml.data import DataModule
-from ml.predict_output import save_predictions
+from ml.heatmap import save_heatmaps
+from ml.predict_output import _class_names, save_predictions
 
 
 OmegaConf.register_new_resolver(
@@ -56,6 +57,24 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
                 f"/artifacts/predictions/{Path(config.predict_output).name}"
             )
             print(f"Predictions stored in MLflow: {uri}", flush=True)
+
+            heatmap_dir = "heatmaps"
+            saved = save_heatmaps(
+                config.predict_output,
+                data.predict.slides,
+                _class_names(config.label_mode),
+                heatmap_dir,
+            )
+            if saved:
+                logger.log_artifact(heatmap_dir, artifact_path="heatmaps")
+                uri = (
+                    f"mlflow-artifacts:/{run.info.experiment_id}/{logger.run_id}"
+                    "/artifacts/heatmaps"
+                )
+                print(
+                    f"Heatmaps stored in MLflow: {uri} ({len(saved)} files)",
+                    flush=True,
+                )
     else:
         getattr(trainer, config.mode)(model, datamodule=data, ckpt_path=ckpt)
     mlflow.end_run()

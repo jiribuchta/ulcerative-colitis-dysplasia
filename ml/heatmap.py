@@ -30,7 +30,8 @@ def save_heatmaps(
         save_dir: Directory to write the heatmaps into.
 
     Returns:
-        The list of saved heatmap paths (``<slide_name>__<column>.tiff``).
+        The list of saved heatmap paths, one per slide and column, laid out as
+        ``<save_dir>/<column>/<slide_name>.tiff``.
     """
     df = pd.read_parquet(predictions_path)
     save_dir = Path(save_dir)
@@ -47,8 +48,8 @@ def save_heatmaps(
         ys = torch.tensor(subset["y"].values)
         for column in value_columns:
             builder = ScalarMaskBuilder(
-                save_dir=save_dir,
-                filename=f"{slide_name}__{column}",
+                save_dir=save_dir / column,
+                filename=slide_name,
                 extent_x=int(slide["extent_x"]),
                 extent_y=int(slide["extent_y"]),
                 mpp_x=float(slide["mpp_x"]),
@@ -56,9 +57,9 @@ def save_heatmaps(
                 extent_tile=int(slide["tile_extent_x"]),
                 stride=int(slide["stride_x"]),
             )
-            values = torch.tensor(
-                subset[column].values, dtype=torch.float32
-            ).unsqueeze(1)
+            values = torch.tensor(subset[column].values, dtype=torch.float32).unsqueeze(
+                1
+            )
             builder.update(values, xs, ys)
             saved.append(builder.save())
 

@@ -24,3 +24,25 @@ def filter_tiles(
         )
 
     return tiles.filter(keep)
+
+
+def filter_negative_origin(
+    tiles: HFDataset,
+    negative_slides: bool = False,
+) -> HFDataset:
+    """Restrict which negative tiles are kept when ``negative_slides`` is set.
+
+    A tile counts as negative when it has no annotation (``annotation`` is
+    ``0``). In ``negative_slides`` mode, negatives are kept only from wholly
+    negative slides (``from_negative_slide`` is true); negatives from
+    annotated slides are treated as unknown and dropped. Positive tiles are
+    always kept regardless of origin.
+    """
+    if not negative_slides:
+        return tiles
+
+    def keep(tile: dict[str, Any]) -> bool:
+        is_negative = tile["annotation"] == 0
+        return (not is_negative) or tile["from_negative_slide"]
+
+    return tiles.filter(keep)

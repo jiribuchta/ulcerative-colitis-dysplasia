@@ -7,7 +7,7 @@ from rationai.mlkit.data.datasets import MetaTiledSlides
 from torch.utils.data import Dataset
 
 from ml.data.datasets.labels import LabelMode, get_label, process_slides
-from ml.data.datasets.utils import filter_tiles
+from ml.data.datasets.utils import filter_negative_origin, filter_tiles
 from ml.typing import Metadata, PredictSample, Sample
 
 
@@ -48,16 +48,20 @@ class _Embeddings[T: Sample | PredictSample](Dataset[T]):
 
 
 class Embeddings(MetaTiledSlides[Sample]):
+    def _filter_tiles(self, tiles: HFDataset) -> HFDataset:
+        return filter_negative_origin(
+            filter_tiles(tiles, self.thresholds, self.min_thresholds),
+            self.negative_slides,
+        )
+
     @property
     def labels(self) -> torch.Tensor:
         return torch.stack(
             [
                 get_label(cast("dict[str, Any]", tile), self.mode)
                 for slide in self.slides
-                for tile in filter_tiles(
-                    self.filter_tiles_by_slide(dict(slide)["id"]),
-                    self.thresholds,
-                    self.min_thresholds,
+                for tile in self._filter_tiles(
+                    self.filter_tiles_by_slide(dict(slide)["id"])
                 )
             ]
         )
@@ -68,12 +72,14 @@ class Embeddings(MetaTiledSlides[Sample]):
         mode: LabelMode | str,
         thresholds: dict[str, float] | None = None,
         min_thresholds: dict[str, float] | None = None,
+        negative_slides: bool = False,
         val_fold: int | None = None,
         is_val: bool = False,
     ) -> None:
         self.mode = LabelMode(mode)
         self.thresholds = thresholds or {}
         self.min_thresholds = min_thresholds or {}
+        self.negative_slides = negative_slides
         self.val_fold = val_fold
         self.is_val = is_val
         super().__init__(uris=(uris,) if isinstance(uris, str) else uris)
@@ -83,11 +89,7 @@ class Embeddings(MetaTiledSlides[Sample]):
         return (
             _Embeddings(
                 slide_metadata=dict(slide),
-                tiles=filter_tiles(
-                    self.filter_tiles_by_slide(dict(slide)["id"]),
-                    self.thresholds,
-                    self.min_thresholds,
-                ),
+                tiles=self._filter_tiles(self.filter_tiles_by_slide(dict(slide)["id"])),
                 mode=self.mode,
                 include_labels=True,
             )

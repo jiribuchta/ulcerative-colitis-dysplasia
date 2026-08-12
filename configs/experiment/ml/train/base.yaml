@@ -6,6 +6,7 @@ defaults:
 mode: fit
 label_mode: high_low
 val_fold: ???
+negative_slides: false
 
 trainer:
   enable_checkpointing: true

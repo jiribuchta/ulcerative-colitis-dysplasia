@@ -4,6 +4,6 @@ defaults:
 
 mlflow_uris:
   embeddings: 
-    train: mlflow-artifacts:/111/744c6cfe294a44a0b3a031a08b20d5b3/artifacts/embeddings/train
-    test_preliminary: mlflow-artifacts:/111/744c6cfe294a44a0b3a031a08b20d5b3/artifacts/embeddings/test_preliminary
-    test_final: mlflow-artifacts:/111/744c6cfe294a44a0b3a031a08b20d5b3/artifacts/embeddings/test_final
+    train: mlflow-artifacts:/111/a68fa530644e475f8807b5c4daa80468/artifacts/embeddings/train
+    test_preliminary: mlflow-artifacts:/111/a68fa530644e475f8807b5c4daa80468/artifacts/embeddings/test_preliminary
+    test_final: mlflow-artifacts:/111/a68fa530644e475f8807b5c4daa80468/artifacts/embeddings/test_final

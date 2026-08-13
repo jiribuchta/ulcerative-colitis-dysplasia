@@ -4,7 +4,7 @@ defaults:
   - _self_
 
 mode: fit
-label_mode: high_low
+label_mode: high
 val_fold: ???
 negative_slides: false
 
@@ -25,8 +25,8 @@ trainer:
 model:
   lr: 1e-4
   decode_head:
-    out_features: 2
+    out_features: 1
 
 metadata:
   run_name: "🏋️‍♂️ Training - ${label_mode} - ${model_name} - ${dataset.tile_extent}px @ ${dataset.mpp}mpp - ${val_fold} fold"
-  description: "Training a model to predict high vs low grade dysplasia."
+  description: "Training a model to predict high-grade dysplasia."

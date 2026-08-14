@@ -2,17 +2,17 @@ from kube_jobs import storage, submit_job
 
 
 submit_job(
-    job_name="project_name-filter-tiles",
-    username=...,
-    image="cerit.io/rationai/base:2.0.6",
-    cpu=8,
-    memory="32Gi",  # approximately 4GiB per process
+    job_name="ulcerative-colitis-dysplasia-filter-tiles",
+    username="jiribuchta",
+    image="cerit.io/jiri_buchta/base-test-cuda:0.0.7",
     public=False,
+    cpu=8,
+    memory="32Gi",
     script=[
-        "git clone https://github.com/RationAI/ulcerative-colitis-dysplasia.git workdir",
+        "git clone https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",
-        "uv sync --frozen",
-        "uv run -m preprocessing.filter_tiles +dataset=...",
+        "uv sync",
+        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 MLFLOW_USER=jiribuchta && uv run python -u -m preprocessing.filter_tiles +dataset=tiled/level1_extent224",
     ],
-    storage=[storage.secure.DATA],
+    storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

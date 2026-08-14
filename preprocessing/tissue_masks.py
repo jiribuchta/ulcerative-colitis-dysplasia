@@ -17,6 +17,7 @@ from rationai.masks import (
 )
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
+from rationai.mlkit.provenance import log_provenance
 
 
 @ray.remote(memory=4 * 1024**3)
@@ -59,6 +60,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         )
 
         logger.log_artifacts(str(tmpdir_path), config.mlflow_artifact_path)
+
+    # ── Provenance (env, params, input chain, PROV doc) ──
+    log_provenance(logger=logger, config=config)
 
 
 if __name__ == "__main__":

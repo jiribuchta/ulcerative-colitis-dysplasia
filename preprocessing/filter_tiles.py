@@ -8,6 +8,7 @@ import ray
 from omegaconf import DictConfig
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
+from rationai.mlkit.provenance import log_provenance
 
 
 def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
@@ -96,6 +97,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             )
 
         logger.log_artifacts(tmpdir, config.mlflow_artifact_path)
+
+    # ── Provenance (env, params, input chain, PROV doc) ──
+    log_provenance(logger=logger, config=config)
 
 
 if __name__ == "__main__":

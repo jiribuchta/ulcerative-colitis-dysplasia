@@ -2,12 +2,22 @@ defaults:
   - base
   - _self_
 
-
 seed: ${random_seed:}
 mode: ???
 checkpoint: null
 
-trainer: {}
+# Provenance: automatic PROV-O capture for every training run.
+# Splits are produced by the preprocessing pipeline (split_dataset step) and
+# referenced as artifacts via split_uris — the callback must NOT recompute a
+# train/test split (test_size: 0 as safety net when the dataset group is absent).
+# fail_fast: false because manifest.csv verification is not applicable here.
+trainer:
+  callbacks:
+    - _target_: rationai.mlkit.lightning.callbacks.ProvenanceCallback
+      model_name: ${metadata.run_name}
+      split_uris: ${oc.select:dataset.mlflow_uris.splits,null}
+      test_size: 0
+      fail_fast: false
 
 data: {}
 

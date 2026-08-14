@@ -4,8 +4,10 @@ from kube_jobs import storage, submit_job
 submit_job(
     job_name="ulcerative-colitis-dysplasia-create-dataset",
     username="jiribuchta",
+    image="cerit.io/jiri_buchta/base-test-cuda:0.0.7",
     public=False,
-    cpu=8,
+    cpu=4,
+    gpu="mig-1g.10gb",
     memory="16Gi",
     shm="16Gi",
     script=[

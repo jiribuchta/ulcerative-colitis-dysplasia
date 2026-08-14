@@ -114,7 +114,13 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
         _log_missing_items(missing_slides, "missing_slides.txt")
 
-        log_dataset_provenance(dataset, logger, config)
+        log_dataset_provenance(
+            dataset,
+            logger,
+            config,
+            dataset_name=config.dataset.name,
+            positive_label="NEGATIVE",
+        )
 
 
 if __name__ == "__main__":

@@ -66,6 +66,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         },
         logger=logger,
         config=config,
+        dataset_name=config.dataset.name,
     )
 
     with TemporaryDirectory() as tmpdir:

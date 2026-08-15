@@ -38,13 +38,17 @@ def get_qc_masks(qc_parameters: QCParameters) -> Generator[tuple[str, str], None
 
 
 def organize_masks(output_path: Path, subdir: str, mask_prefix: str) -> None:
+    print(f"[QC] Organizing masks: prefix={mask_prefix} -> {subdir}", flush=True)
     prefix_dir = output_path / subdir
     prefix_dir.mkdir(parents=True, exist_ok=True)
 
-    for file in list(output_path.glob(f"{mask_prefix}_*.tiff")):
+    files = list(output_path.glob(f"{mask_prefix}_*.tiff"))
+    print(f"[QC] Found {len(files)} mask file(s) for {mask_prefix}", flush=True)
+    for file in files:
         slide_name = file.name.replace(f"{mask_prefix}_", "")
         destination = prefix_dir / slide_name
         file.rename(destination)
+    print(f"[QC] Moved {len(files)} file(s) to {prefix_dir}", flush=True)
 
 
 async def qc_main(
@@ -54,6 +58,11 @@ async def qc_main(
     max_concurrent: int,
     qc_parameters: QCParameters,
 ) -> None:
+    print(
+        f"[QC] Starting: {len(slides)} slide(s), max_concurrent={max_concurrent}, "
+        f"timeout={request_timeout}s, params={qc_parameters}",
+        flush=True,
+    )
     async with AsyncClient() as client:
         async for result in tqdm(
             client.qc.check_slides(
@@ -66,34 +75,50 @@ async def qc_main(
             total=len(slides),
         ):
             if not result.success:
+                print(f"[QC] FAILED {result.wsi_path}: {result.error}", flush=True)
                 with open(output_path / "qc_errors.log", "a") as log_file:
                     log_file.write(
                         f"Failed to process {result.wsi_path}: {result.error}\n"
                     )
+            else:
+                print(f"[QC] Done {result.wsi_path}", flush=True)
+
+        print("[QC] All slide checks finished", flush=True)
 
         for prefix, artifact_name in get_qc_masks(qc_parameters):
             organize_masks(output_path, artifact_name, prefix)
 
+        print("[QC] Merging QC CSV files...", flush=True)
         csvs = list(output_path.glob("*.csv"))
+        print(f"[QC] Found {len(csvs)} CSV file(s) to merge", flush=True)
         pd.concat([pd.read_csv(f) for f in csvs]).to_csv(
             output_path / "qc_metrics.csv", index=False
         )
 
         for f in csvs:
             f.unlink()
+    print("[QC] Complete", flush=True)
 
 
 @with_cli_args(["+preprocessing=qc"])
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
+    print(
+        f"[QC] Downloading dataset artifacts: {config.dataset.mlflow_uris.dataset}",
+        flush=True,
+    )
     dataset = pd.read_csv(
         download_artifacts(artifact_uri=config.dataset.mlflow_uris.dataset)
     )
+    print(f"[QC] Dataset loaded: {len(dataset)} slide(s)", flush=True)
 
     output_path = Path(config.output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+    print(dataset["slide_path"].to_list())
+    print([dataset["slide_path"].to_list()[0]])
 
+    print("[QC] Running QC...", flush=True)
     asyncio.run(
         qc_main(
             output_path=output_path,
@@ -104,6 +129,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         )
     )
 
+    print("[QC] Logging artifacts...", flush=True)
     logger.log_artifacts(str(output_path), "qc_output")
 
     # ── Provenance (env, params, input chain, PROV doc) ──

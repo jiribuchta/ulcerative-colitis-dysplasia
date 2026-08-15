@@ -97,7 +97,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
     asyncio.run(
         qc_main(
             output_path=output_path,
-            slides=dataset["slide_path"].to_list(),
+            slides=dataset["slide_path"].to_list()[0],
             request_timeout=config.request_timeout,
             max_concurrent=config.max_concurrent,
             qc_parameters=config.qc_parameters,

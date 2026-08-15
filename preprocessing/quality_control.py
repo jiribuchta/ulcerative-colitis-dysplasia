@@ -115,14 +115,12 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
     output_path = Path(config.output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    print(dataset["slide_path"].to_list())
-    print([dataset["slide_path"].to_list()[0]])
 
     print("[QC] Running QC...", flush=True)
     asyncio.run(
         qc_main(
             output_path=output_path,
-            slides=[dataset["slide_path"].to_list()[0]],
+            slides=dataset["slide_path"].to_list(),
             request_timeout=config.request_timeout,
             max_concurrent=config.max_concurrent,
             qc_parameters=config.qc_parameters,

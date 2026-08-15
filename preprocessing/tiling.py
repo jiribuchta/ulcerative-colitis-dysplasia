@@ -281,6 +281,7 @@ def tiling(
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
+    print(f"Running tiling preprocessing with config: {config.pretty()}")
     qc_folder = Path(download_artifacts(config.dataset.mlflow_uris.qc))
     tissue_folder = Path(download_artifacts(config.dataset.mlflow_uris.tissue))
     annot_folder = Path(config.dataset.annot_path)

@@ -15,7 +15,10 @@ from ml.data import DataModule
 from ml.heatmap import save_heatmaps
 from ml.inference import collect, f1_scan, write_parquet
 from ml.predict_output import _class_names
+from ml.testf1 import testf1_main
+from ml.testprelim import testprelim_main
 from ml.valfold import valfold_main
+from ml.valthreshold import threshold_main
 
 
 OmegaConf.register_new_resolver(
@@ -129,6 +132,12 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         _predict(config, logger, model)
     elif config.mode == "valfold":
         valfold_main(config, logger)
+    elif config.mode == "valthreshold":
+        threshold_main(config, logger)
+    elif config.mode == "testprelim":
+        testprelim_main(config, logger)
+    elif config.mode == "testf1":
+        testf1_main(config, logger)
     mlflow.end_run()
 
 

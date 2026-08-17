@@ -1,8 +1,8 @@
 # @package _global_
 
 output_dir: ${project_path}/quality_control
-request_timeout: 600
-max_concurrent: 5
+request_timeout: 86400
+max_concurrent: 2
 
 qc_parameters:
   mask_level: 3

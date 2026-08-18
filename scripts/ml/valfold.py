@@ -13,7 +13,7 @@ submit_job(
         "git clone -b feature/ml-cnn https://github.com/RationAI/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",
         "uv sync --frozen",
-        "uv run python -m ml +experiment=ml/valfold/virchow2",
+        "uv run python -m ml +experiment=ml/valfold/virchow2 valfold.manifest='ml/manifests/level2_high.yaml'",
     ],
     storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

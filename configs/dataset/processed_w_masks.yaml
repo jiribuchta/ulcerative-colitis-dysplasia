@@ -3,9 +3,9 @@ defaults:
   - _self_
 
 mlflow_uris:
-  qc: mlflow-artifacts:/1/8604ae965ccd47b7acfdfa4405976d4c/artifacts/qc_output
-  tissue: mlflow-artifacts:/1/d2eda1a438b24bf3bf1142f1c9bbc937/artifacts/tissue_masks
+  qc: mlflow-artifacts:/1/07f0ce65eac14735854c901634012274/artifacts/qc_output
+  tissue: mlflow-artifacts:/1/36869d2c13cd465fb3623dfc050a92d6/artifacts/tissue_masks
   splits:
-      train: mlflow-artifacts:/1/6b32f480983a46b1ad3730873103179e/artifacts/train.csv
-      test_preliminary: mlflow-artifacts:/1/e8175ecf823d403ca5b629a9bb3cf874/artifacts/test_preliminary.csv
-      test_final: mlflow-artifacts:/1/e8175ecf823d403ca5b629a9bb3cf874/artifacts/test_final.csv
+      train: mlflow-artifacts:/1/c249084e6bfb48c1a4805727bcb75961/artifacts/train.csv
+      test_preliminary: mlflow-artifacts:/1/c249084e6bfb48c1a4805727bcb75961/artifacts/test_preliminary.csv
+      test_final: mlflow-artifacts:/1/c249084e6bfb48c1a4805727bcb75961/artifacts/test_final.csv

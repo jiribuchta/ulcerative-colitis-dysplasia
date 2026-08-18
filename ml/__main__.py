@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from ml._mlflow_compat import apply_mlflow_compat_patch
 from ml.data import DataModule
 from ml.heatmap import save_heatmaps
+from ml.heatmap_report import heatmap_report_main
 from ml.inference import collect, f1_scan, write_parquet
 from ml.predict_output import _class_names
 from ml.testf1 import testf1_main
@@ -79,8 +80,9 @@ def _predict(config: DictConfig, logger: MLFlowLogger, model: torch.nn.Module) -
     postprocess: list[str] = list(p.get("postprocess") or [])
     if "f1" in postprocess:
         result = f1_scan(p.predict_output, num_thresholds=int(p.f1.num_thresholds))
-        for name, value in result.items():
-            logger.log_metric(f"f1_scan/{name}", float(value))
+        logger.log_metrics(
+            {f"f1_scan/{name}": float(value) for name, value in result.items()}
+        )
         print(
             f"argmax-F1 threshold={result['threshold']:.4f} "
             f"f1={result['f1']:.4f} "
@@ -138,6 +140,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         testprelim_main(config, logger)
     elif config.mode == "testf1":
         testf1_main(config, logger)
+    elif config.mode == "heatmap":
+        heatmap_report_main(config, logger)
     mlflow.end_run()
 
 

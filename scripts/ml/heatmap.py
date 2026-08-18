@@ -6,21 +6,21 @@ from kube_jobs import storage, submit_job
 # the valfold job has finished.
 valfold_run_id = "cee90311d3ef4dc78c0fff97ac40beee"
 
-# Step 2 is CPU-only (it just reads the saved predictions parquets and sweeps
-# thresholds), so no GPU is requested.
+# Step 4 is CPU-only (reads the saved predictions parquets + slide geometry and
+# rasterizes heatmaps), so no GPU is requested.
 submit_job(
-    job_name="ulcerative-colitis-dysplasia-valthreshold",
+    job_name="ulcerative-colitis-dysplasia-heatmap",
     username="borisim",
     public=False,
-    cpu=4,
-    memory="8Gi",
-    shm="2Gi",
+    cpu=8,
+    memory="32Gi",
+    shm="4Gi",
     script=[
         "git clone -b feature/ml-cnn https://github.com/RationAI/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",
         "uv sync --frozen",
-        "uv run python -m ml +experiment=ml/valthreshold/virchow2 "
-        "valthreshold.valfold_run_id='" + valfold_run_id + "'",
+        "uv run python -m ml +experiment=ml/heatmap/virchow2 "
+        "heatmap.valfold_run_id='" + valfold_run_id + "'",
     ],
     storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

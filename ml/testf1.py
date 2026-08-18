@@ -132,7 +132,7 @@ def testf1_main(config: DictConfig, logger: MLFlowLogger) -> None:
             f"(p={row['precision']:.4f}, r={row['recall']:.4f})",
             flush=True,
         )
-        logger.log_metric(f"{train_id}/test_f1", float(row["f1"]))
+        logger.log_metrics({f"{train_id}/test_f1": float(row["f1"])})
 
     aggregate = _aggregate(per_run)
     out_dir = Path("testf1")

@@ -81,8 +81,12 @@ def threshold_main(config: DictConfig, logger: MLFlowLogger) -> None:
             f"(precision={row['precision']:.4f}, recall={row['recall']:.4f})",
             flush=True,
         )
-        logger.log_metric(f"{train_id}/threshold", float(row["threshold"]))
-        logger.log_metric(f"{train_id}/f1", float(row["f1"]))
+        logger.log_metrics(
+            {
+                f"{train_id}/threshold": float(row["threshold"]),
+                f"{train_id}/f1": float(row["f1"]),
+            }
+        )
 
     out = Path("valthreshold/thresholds.parquet")
     out.parent.mkdir(parents=True, exist_ok=True)

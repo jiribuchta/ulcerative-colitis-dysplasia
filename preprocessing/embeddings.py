@@ -47,17 +47,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         slides = pd.read_parquet(folder / "slides")
         tiles = pd.read_parquet(folder / "tiles")
 
-        if "path" not in tiles.columns and "path" not in slides.columns:
-            raise KeyError(
-                "Neither 'tiles' nor 'slides' contains a 'path' column, which "
-                "is required to load slide files. "
-                f"tiles columns: {tiles.columns.tolist()} "
-                f"slides columns: {slides.columns.tolist()}"
-            )
-
         slide_info_cols = [
             c
-            for c in ("path", "level", "tile_extent_x", "tile_extent_y")
+            for c in ("slide_path", "level", "tile_extent_x", "tile_extent_y")
             if c not in tiles.columns
         ]
         if slide_info_cols:
@@ -72,7 +64,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         ds = ds.with_column(
             "tile",
             read_slide_tiles(  # pyright: ignore[reportCallIssue]
-                col("path"),
+                col("slide_path"),
                 col("x"),
                 col("y"),
                 col("tile_extent_x"),
@@ -82,7 +74,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             num_cpus=1,
             memory=4 * 1024**3,
         )
-        ds = ds.drop_columns(["path", "level", "tile_extent_x", "tile_extent_y"])
+        ds = ds.drop_columns(["slide_path", "level", "tile_extent_x", "tile_extent_y"])
         ds = ds.map(
             EmbedTiles,  # pyright: ignore[reportArgumentType]
             fn_constructor_args=(config.model, config.concurrency),

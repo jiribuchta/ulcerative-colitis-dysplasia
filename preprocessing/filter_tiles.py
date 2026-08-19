@@ -51,7 +51,12 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
     if group["annotation"].sum() == 0:
         return group
 
+    print("Filtering slide_id:", group["slide_id"].iloc[0])
+    print(group)
+
     sorted_group = group.sort_values("x").copy()
+    print("Sorted group:")
+    print(sorted_group)
 
     unique_x = (
         sorted_group["x"]
@@ -59,18 +64,37 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         .drop_duplicates()
         .sort_values()
     )
+    print("Unique x-coordinates:")
+    print(unique_x)
+
     x_diffs = unique_x.diff()
 
     dynamic_gap_threshold = x_diffs.max() * 0.50
     clusters = (x_diffs > dynamic_gap_threshold).cumsum().fillna(0)
     x_to_cluster = dict(zip(unique_x, clusters, strict=True))
+    print("Dynamic gap threshold:", dynamic_gap_threshold)
+    print("X-coordinate to cluster mapping:")
+    for x, cluster in x_to_cluster.items():
+        print(f"x: {x}, cluster: {cluster}")
+
+    print("Clusters assigned to tiles:")
+    print(sorted_group[["x"]].assign(_cluster=sorted_group["x"].map(x_to_cluster)))
 
     sorted_group["_cluster"] = sorted_group["x"].map(x_to_cluster)
+    print("Clusters assigned to tiles:")
+    print(sorted_group[["_cluster", "x"]])
 
     valid_clusters = sorted_group.groupby("_cluster")["annotation"].sum()
+    print("Valid clusters with annotation counts:")
+    print(valid_clusters)
+
     valid_ids = valid_clusters[valid_clusters > 0].index
+    print("Valid clusters with annotations:")
+    print(valid_ids)
 
     filtered = sorted_group[sorted_group["_cluster"].isin(valid_ids)]
+    print("Filtered group:")
+    print(filtered)
 
     return filtered.drop(columns=["_cluster"])
 
@@ -88,9 +112,12 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
             ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
             print(ds_tiles.schema())
+            print("grouped:")
+            print(ds_tiles.groupby("slide_id"))
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )
+
             print("Filtered tiles schema:")
             print(filtered_ds_tiles.schema())
 
@@ -98,14 +125,11 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             save_dir.mkdir(parents=True, exist_ok=True)
 
             ds_slides = ray.data.read_parquet(str(slides), num_cpus=8)
-            print(ds_slides.schema())
             rows = config.row_per_file
             ds_slides.write_parquet(str(save_dir / "slides"), min_rows_per_file=rows)
             filtered_ds_tiles.write_parquet(
                 str(save_dir / "tiles"), min_rows_per_file=rows
             )
-            print("filtered slides schema:")
-            print(filtered_ds_tiles.schema())
 
         logger.log_artifacts(tmpdir, config.mlflow_artifact_path)
 

@@ -57,7 +57,7 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
     x_diffs = unique_x.diff()
 
     dynamic_gap_threshold = x_diffs.max() * 0.50
-    clusters = (x_diffs > dynamic_gap_threshold).cumsum().fillna(0)
+    clusters = (x_diffs > dynamic_gap_threshold).astype(int).cumsum().fillna(0)
     x_to_cluster = dict(zip(unique_x, clusters, strict=True))
 
     sorted_group["_cluster"] = sorted_group["x"].map(x_to_cluster)

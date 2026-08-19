@@ -2,7 +2,7 @@ from kube_jobs import storage, submit_job
 
 
 submit_job(
-    job_name="ulcerative-colitis-dysplasia-embeddings-...",
+    job_name="ulcerative-colitis-dysplasia-embeddings",
     username="jiribuchta",
     image="cerit.io/jiri_buchta/base-test-cuda:0.0.7",
     public=False,

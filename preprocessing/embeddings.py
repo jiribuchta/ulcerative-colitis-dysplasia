@@ -47,7 +47,9 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         slides = pd.read_parquet(folder / "slides")
         tiles = pd.read_parquet(folder / "tiles")
 
-        slide_info = slides.set_index("id")[["level", "tile_extent_x", "tile_extent_y"]]
+        slide_info = slides.set_index("id")[
+            ["path", "level", "tile_extent_x", "tile_extent_y"]
+        ]
         tiles_enriched = tiles.join(slide_info, on="slide_id")
 
         ds = ray.data.from_arrow(

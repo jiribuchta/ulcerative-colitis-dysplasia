@@ -52,11 +52,11 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         return group
 
     print("Filtering slide_id:", group["slide_id"].iloc[0])
-    print(group)
+    print(group.head())
 
     sorted_group = group.sort_values("x").copy()
     print("Sorted group:")
-    print(sorted_group)
+    print(sorted_group.head())
 
     unique_x = (
         sorted_group["x"]
@@ -65,7 +65,7 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         .sort_values()
     )
     print("Unique x-coordinates:")
-    print(unique_x)
+    print(unique_x.head())
 
     x_diffs = unique_x.diff()
 
@@ -86,7 +86,7 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
 
     valid_clusters = sorted_group.groupby("_cluster")["annotation"].sum()
     print("Valid clusters with annotation counts:")
-    print(valid_clusters)
+    print(valid_clusters.head())
 
     valid_ids = valid_clusters[valid_clusters > 0].index
     print("Valid clusters with annotations:")
@@ -94,7 +94,7 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
 
     filtered = sorted_group[sorted_group["_cluster"].isin(valid_ids)]
     print("Filtered group:")
-    print(filtered)
+    print(filtered.head())
 
     return filtered.drop(columns=["_cluster"])
 
@@ -112,8 +112,6 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
             ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
             print(ds_tiles.schema())
-            print("grouped:")
-            print(ds_tiles.groupby("slide_id"))
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )

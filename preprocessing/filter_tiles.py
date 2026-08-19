@@ -52,11 +52,11 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         return group
 
     print("Filtering slide_id:", group["slide_id"].iloc[0])
-    print(group.head())
+    print(group.columns)
 
     sorted_group = group.sort_values("x").copy()
     print("Sorted group:")
-    print(sorted_group.head())
+    print(sorted_group.columns)
 
     unique_x = (
         sorted_group["x"]
@@ -64,37 +64,25 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         .drop_duplicates()
         .sort_values()
     )
-    print("Unique x-coordinates:")
-    print(unique_x.head())
 
     x_diffs = unique_x.diff()
 
     dynamic_gap_threshold = x_diffs.max() * 0.50
     clusters = (x_diffs > dynamic_gap_threshold).cumsum().fillna(0)
     x_to_cluster = dict(zip(unique_x, clusters, strict=True))
-    print("Dynamic gap threshold:", dynamic_gap_threshold)
-    print("X-coordinate to cluster mapping:")
-    for x, cluster in x_to_cluster.items():
-        print(f"x: {x}, cluster: {cluster}")
-
-    print("Clusters assigned to tiles:")
-    print(sorted_group[["x"]].assign(_cluster=sorted_group["x"].map(x_to_cluster)))
 
     sorted_group["_cluster"] = sorted_group["x"].map(x_to_cluster)
-    print("Clusters assigned to tiles:")
-    print(sorted_group[["_cluster", "x"]])
+    print("Clusters assigned:")
+    print(sorted_group.columns)
 
     valid_clusters = sorted_group.groupby("_cluster")["annotation"].sum()
     print("Valid clusters with annotation counts:")
-    print(valid_clusters.head())
 
     valid_ids = valid_clusters[valid_clusters > 0].index
-    print("Valid clusters with annotations:")
-    print(valid_ids)
 
     filtered = sorted_group[sorted_group["_cluster"].isin(valid_ids)]
     print("Filtered group:")
-    print(filtered.head())
+    print(filtered.columns)
 
     return filtered.drop(columns=["_cluster"])
 

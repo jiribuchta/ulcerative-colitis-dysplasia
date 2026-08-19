@@ -93,14 +93,12 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             tiles = local_dir / "tiles"
 
             ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
-            all_cols = ds_tiles.columns()
-            if all_cols is None:
-                raise ValueError(f"No columns found in tiles dataset for split '{split}'.")
-            ds_tiles = ds_tiles.select_columns(all_cols)
-            print(ds_tiles.schema())
-            print(ds_tiles.groupby("slide_id"))
-            filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
-                filter_slide_tiles, batch_format="pandas"
+            filtered_ds_tiles = (
+                ds_tiles.repartition(num_blocks=200, shuffle=True)
+                .map_batches(
+                    lambda df: df.groupby("slide_id", group_keys=False).apply(filter_slide_tiles),
+                    batch_format="pandas"
+                )
             )
 
             print("Filtered tiles schema:")

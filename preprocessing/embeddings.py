@@ -47,10 +47,24 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         slides = pd.read_parquet(folder / "slides")
         tiles = pd.read_parquet(folder / "tiles")
 
-        slide_info = slides.set_index("id")[
-            ["path", "level", "tile_extent_x", "tile_extent_y"]
+        if "path" not in tiles.columns and "path" not in slides.columns:
+            raise KeyError(
+                "Neither 'tiles' nor 'slides' contains a 'path' column, which "
+                "is required to load slide files. "
+                f"tiles columns: {tiles.columns.tolist()} "
+                f"slides columns: {slides.columns.tolist()}"
+            )
+
+        slide_info_cols = [
+            c
+            for c in ("path", "level", "tile_extent_x", "tile_extent_y")
+            if c not in tiles.columns
         ]
-        tiles_enriched = tiles.join(slide_info, on="slide_id")
+        if slide_info_cols:
+            slide_info = slides.set_index("id")[slide_info_cols]
+            tiles_enriched = tiles.join(slide_info, on="slide_id")
+        else:
+            tiles_enriched = tiles
 
         ds = ray.data.from_arrow(
             pa.Table.from_pandas(tiles_enriched, preserve_index=False)

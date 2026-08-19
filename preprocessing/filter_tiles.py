@@ -91,6 +91,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )
+            print("Filtered tiles schema:")
+            print(filtered_ds_tiles.schema())
 
             save_dir = Path(tmpdir) / split
             save_dir.mkdir(parents=True, exist_ok=True)
@@ -102,6 +104,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             filtered_ds_tiles.write_parquet(
                 str(save_dir / "tiles"), min_rows_per_file=rows
             )
+            print("filtered slides schema:")
+            print(filtered_ds_tiles.schema())
 
         logger.log_artifacts(tmpdir, config.mlflow_artifact_path)
 

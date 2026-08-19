@@ -48,6 +48,12 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         ValueError: If annotations are detected in multiple spatially distinct
             tissue columns on the same slide.
     """  # noqa: D205
+    if "path" not in group.columns:
+        group = group.reset_index()
+
+    print("here")
+    print(group.columns)
+
     if group["annotation"].sum() == 0:
         return group
 

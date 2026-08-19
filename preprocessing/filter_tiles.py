@@ -48,6 +48,9 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         ValueError: If annotations are detected in multiple spatially distinct
             tissue columns on the same slide.
     """  # noqa: D205
+    print("here")
+    print(group.columns)
+
     if group["annotation"].sum() == 0:
         return group
 
@@ -55,8 +58,6 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
     print(group.columns)
 
     sorted_group = group.sort_values("x").copy()
-    print("Sorted group:")
-    print(sorted_group.columns)
 
     unique_x = (
         sorted_group["x"]
@@ -72,17 +73,10 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
     x_to_cluster = dict(zip(unique_x, clusters, strict=True))
 
     sorted_group["_cluster"] = sorted_group["x"].map(x_to_cluster)
-    print("Clusters assigned:")
-    print(sorted_group.columns)
-
     valid_clusters = sorted_group.groupby("_cluster")["annotation"].sum()
-    print("Valid clusters with annotation counts:")
-
     valid_ids = valid_clusters[valid_clusters > 0].index
 
     filtered = sorted_group[sorted_group["_cluster"].isin(valid_ids)]
-    print("Filtered group:")
-    print(filtered.columns)
 
     return filtered.drop(columns=["_cluster"])
 
@@ -100,6 +94,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
             ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
             print(ds_tiles.schema())
+            print(ds_tiles.groupby("slide_id"))
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )

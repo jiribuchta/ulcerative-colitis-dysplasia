@@ -208,8 +208,7 @@ def tiling(
 ) -> tuple[ray.data.Dataset, ray.data.Dataset]:
     qc_df = pd.read_csv(qc_folder / "qc_metrics.csv", index_col="slide_name")
 
-    paths = df["path"].tolist()
-    print(f"paths: {paths}")
+    paths = df["slide_path"].tolist()
 
     slides = (
         read_slides(paths, tile_extent=tile_extent, stride=stride, mpp=mpp)

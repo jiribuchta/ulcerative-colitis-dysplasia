@@ -87,6 +87,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             tiles = local_dir / "tiles"
 
             ds_tiles = ray.data.read_parquet(str(tiles))
+            print("here")
+            print(ds_tiles.columns)
             ds_tiles = ds_tiles.with_column("slide_path", col("path"))
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"

@@ -93,7 +93,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             tiles = local_dir / "tiles"
 
             ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
-            all_cols = ds_tiles.columns
+            all_cols = ds_tiles.columns()
             if all_cols is None:
                 raise ValueError(f"No columns found in tiles dataset for split '{split}'.")
             ds_tiles = ds_tiles.select_columns(all_cols)

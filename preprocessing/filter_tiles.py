@@ -48,24 +48,12 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         ValueError: If annotations are detected in multiple spatially distinct
             tissue columns on the same slide.
     """  # noqa: D205
-    print("here")
-    print(group.columns)
-
     if group["annotation"].sum() == 0:
         return group
 
-    print("Filtering slide_id:", group["slide_id"].iloc[0])
-    print(group.columns)
-
     sorted_group = group.sort_values("x").copy()
 
-    unique_x = (
-        sorted_group["x"]
-        .astype("float64")  # Arrow-backed dtypes have no pyarrow cumsum kernel for bool
-        .drop_duplicates()
-        .sort_values()
-    )
-
+    unique_x = sorted_group["x"].drop_duplicates().sort_values()
     x_diffs = unique_x.diff()
 
     dynamic_gap_threshold = x_diffs.max() * 0.50
@@ -73,6 +61,7 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
     x_to_cluster = dict(zip(unique_x, clusters, strict=True))
 
     sorted_group["_cluster"] = sorted_group["x"].map(x_to_cluster)
+
     valid_clusters = sorted_group.groupby("_cluster")["annotation"].sum()
     valid_ids = valid_clusters[valid_clusters > 0].index
 
@@ -92,22 +81,15 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             slides = local_dir / "slides"
             tiles = local_dir / "tiles"
 
-            ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
-            filtered_ds_tiles = (
-                ds_tiles.repartition(num_blocks=200, shuffle=True)
-                .map_batches(
-                    lambda df: df.groupby("slide_id", group_keys=False).apply(filter_slide_tiles),
-                    batch_format="pandas"
-                )
+            ds_tiles = ray.data.read_parquet(str(tiles))
+            filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
+                filter_slide_tiles, batch_format="pandas"
             )
-
-            print("Filtered tiles schema:")
-            print(filtered_ds_tiles.schema())
 
             save_dir = Path(tmpdir) / split
             save_dir.mkdir(parents=True, exist_ok=True)
 
-            ds_slides = ray.data.read_parquet(str(slides), num_cpus=8)
+            ds_slides = ray.data.read_parquet(str(slides))
             rows = config.row_per_file
             ds_slides.write_parquet(str(save_dir / "slides"), min_rows_per_file=rows)
             filtered_ds_tiles.write_parquet(

@@ -48,9 +48,6 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
         ValueError: If annotations are detected in multiple spatially distinct
             tissue columns on the same slide.
     """  # noqa: D205
-    if "path" not in group.columns:
-        group = group.reset_index()
-
     print("here")
     print(group.columns)
 
@@ -89,7 +86,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             tiles = local_dir / "tiles"
 
             ds_tiles = ray.data.read_parquet(str(tiles))
-            print(ds_tiles.schema())
+            ds_tiles["path"] = ds_tiles["slide_path"]  # Add 'path' column for compatibility with filter_slide_tiles
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )

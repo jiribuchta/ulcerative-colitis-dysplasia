@@ -29,7 +29,7 @@ QC_SUBFOLDERS = {"blur": "blur_per_pixel", "artifacts": "artifacts_per_pixel"}
 
 
 def qc_agg(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
-    qc_df = cast("pd.Series", df.loc[Path(row["path"]).stem])
+    qc_df = cast("pd.Series", df.loc[Path(row["slide_path"]).stem])
 
     row["blur_mean"] = qc_df[QC_BLUR_MEAN_COLUMN]
     row["artifacts_mean"] = qc_df[QC_ARTIFACTS_MEAN_COLUMN]
@@ -38,17 +38,17 @@ def qc_agg(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
 
 
 def add_fold(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
-    row["fold"] = df.loc[Path(row["path"]).stem, "fold"]
+    row["fold"] = df.loc[Path(row["slide_path"]).stem, "fold"]
     return row
 
 
 def add_annot_path(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
-    row["annot_path"] = df.loc[Path(row["path"]).stem, "annot_path"]
+    row["annot_path"] = df.loc[Path(row["slide_path"]).stem, "annot_path"]
     return row
 
 
 def add_clarity(row: dict[str, Any], df: pd.DataFrame) -> dict[str, Any]:
-    row["clarity"] = df.loc[Path(row["path"]).stem, "clarity"]
+    row["clarity"] = df.loc[Path(row["slide_path"]).stem, "clarity"]
     return row
 
 
@@ -57,7 +57,7 @@ def add_mask_paths(
     qc_folder: Path,
     tissue_folder: Path,
 ) -> dict[str, Any]:
-    stem = Path(row["path"]).stem
+    stem = Path(row["slide_path"]).stem
     row["tissue_mask_path"] = str(tissue_folder / f"{stem}.tiff")
     for key, subfolder in QC_SUBFOLDERS.items():
         row[f"{key}_mask_path"] = str(qc_folder / subfolder / f"{stem}.tiff")
@@ -116,7 +116,7 @@ def tile(
     downsample = row["downsample"]
     tile_area = full_roi.area
 
-    slide_name = Path(row["path"]).stem
+    slide_name = Path(row["slide_path"]).stem
     annot_path = annot_folder / f"{slide_name}.json"
 
     class_generators = []
@@ -133,7 +133,7 @@ def tile(
             {
                 "tile_x": coord[0],
                 "tile_y": coord[1],
-                "path": row["path"],
+                "slide_path": row["slide_path"],
                 "slide_id": row["id"],
                 "level": row["level"],
                 "tile_extent_x": row["tile_extent_x"],
@@ -178,7 +178,7 @@ def filter_tissue(row: dict[str, Any], threshold: float) -> bool:
 def select(row: dict[str, Any], target_labels: list[str]) -> dict[str, Any]:
     selected_row = {
         "slide_id": row["slide_id"],
-        "path": row["path"],
+        "slide_path": row["slide_path"],
         "x": row["tile_x"],
         "y": row["tile_y"],
         "tissue": row["tissue"],

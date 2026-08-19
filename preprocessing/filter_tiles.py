@@ -53,7 +53,12 @@ def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
 
     sorted_group = group.sort_values("x").copy()
 
-    unique_x = sorted_group["x"].drop_duplicates().sort_values()
+    unique_x = (
+        sorted_group["x"]
+        .astype("float64")  # Arrow-backed dtypes have no pyarrow cumsum kernel for bool
+        .drop_duplicates()
+        .sort_values()
+    )
     x_diffs = unique_x.diff()
 
     dynamic_gap_threshold = x_diffs.max() * 0.50

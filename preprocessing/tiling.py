@@ -178,6 +178,7 @@ def filter_tissue(row: dict[str, Any], threshold: float) -> bool:
 def select(row: dict[str, Any], target_labels: list[str]) -> dict[str, Any]:
     selected_row = {
         "slide_id": row["slide_id"],
+        "path": row["path"],
         "x": row["tile_x"],
         "y": row["tile_y"],
         "tissue": row["tissue"],

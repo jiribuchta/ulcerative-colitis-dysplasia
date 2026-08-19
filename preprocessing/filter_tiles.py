@@ -9,6 +9,7 @@ from omegaconf import DictConfig
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
 from rationai.mlkit.provenance import log_provenance
+from ray.data.expressions import col
 
 
 def filter_slide_tiles(group: pd.DataFrame) -> pd.DataFrame:
@@ -86,7 +87,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             tiles = local_dir / "tiles"
 
             ds_tiles = ray.data.read_parquet(str(tiles))
-            ds_tiles["path"] = ds_tiles["slide_path"]  # Add 'path' column for compatibility with filter_slide_tiles
+            ds_tiles = ds_tiles.with_column("slide_path", col("path"))
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )

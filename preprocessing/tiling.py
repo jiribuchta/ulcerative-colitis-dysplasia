@@ -178,7 +178,6 @@ def filter_tissue(row: dict[str, Any], threshold: float) -> bool:
 def select(row: dict[str, Any], target_labels: list[str]) -> dict[str, Any]:
     selected_row = {
         "slide_id": row["slide_id"],
-        "path": row["path"],
         "x": row["tile_x"],
         "y": row["tile_y"],
         "tissue": row["tissue"],
@@ -282,13 +281,11 @@ def tiling(
 @hydra.main(config_path="../configs", config_name="preprocessing", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
-    print(f"Running tiling preprocessing with config: {config.dataset.mlflow_uris.qc}")
-    print(f"Running tiling preprocessing with config: {config}")
-    qc_folder = Path(download_artifacts(config.dataset.mlflow_uris.qc))
-    tissue_folder = Path(download_artifacts(config.dataset.mlflow_uris.tissue))
-    annot_folder = Path(config.dataset.annot_path)
+    qc_folder = Path(download_artifacts(config.mlflow_uris.qc))
+    tissue_folder = Path(download_artifacts(config.mlflow_uris.tissue))
+    annot_folder = Path(config.annot_path)
 
-    for name, split_uri in config.dataset.mlflow_uris.splits.items():
+    for name, split_uri in config.mlflow_uris.splits.items():
         split = pd.read_csv(
             mlflow.artifacts.download_artifacts(split_uri), index_col="slide_id"
         )

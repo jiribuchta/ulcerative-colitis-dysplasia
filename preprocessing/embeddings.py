@@ -187,6 +187,13 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
 
     output_folder = Path(config.output_dir)
 
+    print(
+        f"[debug] model={model.value} tile_size={config.tile_size} "
+        f"embedding_dim={embedding_dim} device={device} "
+        f"skip_existing={config.skip_existing} output_dir={output_folder}",
+        flush=True,
+    )
+
     with torch.no_grad():
         dataset = load_dataset(config.tiling_uris, tile_size=config.tile_size)
 
@@ -195,7 +202,15 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
         except Exception:
             total_slides = None
 
-        print("Processing slides and extracting embeddings...")
+        print(
+            f"[debug] dataset ready: slides={total_slides} "
+            f"total_tiles={len(dataset.tiles)}",
+            flush=True,
+        )
+
+        print("Processing slides and extracting embeddings...", flush=True)
+        slides_processed = 0
+        slides_skipped = 0
         for slide_dataset in tqdm(
             dataset.generate_datasets(), total=total_slides, desc="Slides"
         ):
@@ -204,7 +219,14 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
                 ".parquet"
             )
 
+            print(
+                f"[debug] slide={slide_name} tiles={len(slide_dataset)} "
+                f"path={embeddings_path} exists={embeddings_path.exists()}",
+                flush=True,
+            )
+
             if config.skip_existing and embeddings_path.exists():
+                slides_skipped += 1
                 continue
 
             slide_tiles_dataloader = DataLoader(
@@ -227,13 +249,32 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
                     leave=False,
                 )
             ):
+                if i == 0:
+                    print(
+                        f"[debug] slide={slide_name} first_batch "
+                        f"input_shape={tuple(x.shape)} device={x.device}",
+                        flush=True,
+                    )
                 x = x.to(device)
                 embeddings = process_output(tile_encoder(x), model)
+                if i == 0:
+                    print(
+                        f"[debug] slide={slide_name} first_batch "
+                        f"output_shape={tuple(embeddings.shape)} "
+                        f"dtype={embeddings.dtype}",
+                        flush=True,
+                    )
                 start = i * config.dataloader.batch_size
                 end = start + embeddings.size(0)
                 slide_tiles_embeddings[start:end] = embeddings.to("cpu")
                 slide_tiles_x[start:end] = metadata["x"].to("cpu")
                 slide_tiles_y[start:end] = metadata["y"].to("cpu")
+
+            print(
+                f"[debug] slide={slide_name} done "
+                f"embeddings={tuple(slide_tiles_embeddings.shape)}",
+                flush=True,
+            )
 
             save_embeddings(
                 slide_tiles_embeddings,
@@ -246,9 +287,13 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
                 local_path=str(embeddings_path),
                 artifact_path="embeddings",
             )
-            break
+            slides_processed += 1
 
-        print("DEBUG: Script reached the end.")
+        print(
+            f"[debug] finished: processed={slides_processed} "
+            f"skipped={slides_skipped}",
+            flush=True,
+        )
 
 
 if __name__ == "__main__":

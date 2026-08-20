@@ -1,13 +1,13 @@
 # @package _global_
 
 token: ${oc.env:HF_TOKEN,null}
-model: prov-gigapath
+model: VIRCHOW2
 level: 2
 
 tiling_uris: 
- - mlflow-artifacts:/111/44ba485dd6b0401a9d3d5720378b95b2/artifacts/tiling/train
- - mlflow-artifacts:/111/44ba485dd6b0401a9d3d5720378b95b2/artifacts/tiling/test_preliminary
- - mlflow-artifacts:/111/44ba485dd6b0401a9d3d5720378b95b2/artifacts/tiling/test_final
+ - mlflow-artifacts:/1/70f252b15284442abcc475a87d548e72/artifacts/filtered_tiles/train
+ - mlflow-artifacts:/1/70f252b15284442abcc475a87d548e72/artifacts/filtered_tiles/test_preliminary
+ - mlflow-artifacts:/1/70f252b15284442abcc475a87d548e72/artifacts/filtered_tiles/test_final
 
 output_dir: ${project_path}/embeddings
 
@@ -22,4 +22,4 @@ metadata:
   experiment_name: Ulcerative Colitis Dysplasia
   run_name: '📂 Tile Embeddings'
   description: 'Ulcerative Colitis Dysplasia Tile Embeddings' 
-  user: Borisim
+  user: jiribuchta

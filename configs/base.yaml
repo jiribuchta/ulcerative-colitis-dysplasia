@@ -5,7 +5,7 @@ defaults:
   - _self_
 
 data_path: /mnt/data/IKEM/colon/IBD_AI/dysplasia
-project_path: /mnt/projects/inflammatory_bowel_disease/ulcerative_colitis_dysplasia
+project_path: /mnt/projects/inflammatory_bowel_disease/ulcerative_colitis_dysplasia/jiribuchta_prov_test
 
 metadata:
   experiment_name: Ulcerative Colitis Dysplasia

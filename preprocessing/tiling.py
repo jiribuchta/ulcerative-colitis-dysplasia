@@ -231,7 +231,7 @@ def tiling(
         .map(qc_agg, fn_args=(qc_df,))  # pyright: ignore[reportArgumentType]
     )
 
-    slides = slides.rename_columns({"path": "slide_path"}, allow_missing=True)
+    slides = slides.rename_columns({"path": "slide_path"})
 
     if "fold" in df.columns:
         slides = slides.map(add_fold, fn_args=(df,))  # pyright: ignore[reportArgumentType]

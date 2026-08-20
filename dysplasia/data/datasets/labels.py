@@ -13,5 +13,5 @@ def process_slides(slides: pd.DataFrame) -> pd.DataFrame:
         else:
             slides = pd.DataFrame(slides)
 
-    slides["name"] = slides["path"].apply(lambda x: Path(x).stem)
+    slides["name"] = slides["slide_path"].apply(lambda x: Path(x).stem)
     return slides

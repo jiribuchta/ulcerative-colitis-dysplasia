@@ -25,7 +25,7 @@ class _Tiles(Dataset[T], Generic[T]):
     ) -> None:
         super().__init__()
         self.slide_tiles = OpenSlideTilesDataset(
-            slide_path=slide_metadata["path"],
+            slide_path=slide_metadata["slide_path"],
             level=slide_metadata["level"],
             tile_extent_x=slide_metadata["tile_extent_x"],
             tile_extent_y=slide_metadata["tile_extent_y"],

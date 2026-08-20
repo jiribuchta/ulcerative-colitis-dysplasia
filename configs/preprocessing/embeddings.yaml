@@ -3,6 +3,8 @@
 token: ${oc.env:HF_TOKEN,null}
 model: virchow2
 level: 2
+# Must be divisible by the model's patch size (14 for Virchow2); 224 is the recommended inference size
+tile_size: 224
 
 tiling_uris: 
  - mlflow-artifacts:/1/26885cb72d9f4950b541dac8bc3ca1cf/artifacts/filtered_tiles/train

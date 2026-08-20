@@ -27,7 +27,7 @@ class FoundationModel(Enum):
     VIRCHOW2 = "virchow2"
 
 
-def load_dataset(uris: Iterable[str]) -> TilesPredict:
+def load_dataset(uris: Iterable[str], tile_size: int) -> TilesPredict:
     """Load the dataset for tile embeddings.
 
     Assumes that the dataset has 224x224 RGB tiles.
@@ -42,6 +42,7 @@ def load_dataset(uris: Iterable[str]) -> TilesPredict:
         uris,
         transforms=A.Compose(
             [
+                A.Resize(height=tile_size, width=tile_size),
                 A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ]
         ),
@@ -187,7 +188,7 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
     output_folder = Path(config.output_dir)
 
     with torch.no_grad():
-        dataset = load_dataset(config.tiling_uris)
+        dataset = load_dataset(config.tiling_uris, tile_size=config.tile_size)
 
         try:
             total_slides = len(dataset.slides)  # type: ignore[arg-type]

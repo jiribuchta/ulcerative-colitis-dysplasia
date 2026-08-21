@@ -5,6 +5,7 @@ from pathlib import Path
 import albumentations as A
 import hydra
 import pandas as pd
+from rationai.mlkit.provenance.log_provenance import log_provenance
 import timm
 import torch
 from huggingface_hub import login
@@ -294,6 +295,7 @@ def main(config: DictConfig, logger: Logger | None = None) -> None:
             f"skipped={slides_skipped}",
             flush=True,
         )
+    log_provenance(logger=logger, config=config)
 
 
 if __name__ == "__main__":

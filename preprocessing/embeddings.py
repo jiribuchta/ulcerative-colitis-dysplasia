@@ -5,7 +5,7 @@ from pathlib import Path
 import albumentations as A
 import hydra
 import pandas as pd
-from rationai.mlkit.provenance.log_provenance import log_provenance
+from rationai.mlkit.provenance import log_provenance
 import timm
 import torch
 from huggingface_hub import login

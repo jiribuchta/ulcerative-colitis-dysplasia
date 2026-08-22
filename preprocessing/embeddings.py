@@ -58,7 +58,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         ds = ds.with_column(
             "tile",
             read_slide_tiles(  # pyright: ignore[reportCallIssue]
-                col("path"),
+                col("slide_path"),
                 col("x"),
                 col("y"),
                 col("tile_extent_x"),
@@ -68,7 +68,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             num_cpus=1,
             memory=4 * 1024**3,
         )
-        ds = ds.drop_columns(["path", "level", "tile_extent_x", "tile_extent_y"])
+        ds = ds.drop_columns(["slide_path", "level", "tile_extent_x", "tile_extent_y"])
         ds = ds.map(
             EmbedTiles,  # pyright: ignore[reportArgumentType]
             fn_constructor_args=(config.model, config.concurrency),

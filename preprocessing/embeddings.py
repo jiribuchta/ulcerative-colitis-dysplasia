@@ -15,6 +15,8 @@ from rationai.mlkit.lightning.loggers import MLFlowLogger
 from ratiopath.tiling.read_slide_tiles import read_slide_tiles
 from ray.data.expressions import col
 
+from rationai.mlkit.provenance.log_provenance import log_provenance
+
 
 class EmbedTiles:
     def __init__(self, model: str, concurrency: int) -> None:
@@ -87,6 +89,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         ds.write_parquet(str(tiles_parquet_dir), min_rows_per_file=config.rows_per_file)
 
     logger.log_artifacts(config.output_dir, config.mlflow_artifact_path)
+    log_provenance(config=config, logger=logger)
 
 
 if __name__ == "__main__":

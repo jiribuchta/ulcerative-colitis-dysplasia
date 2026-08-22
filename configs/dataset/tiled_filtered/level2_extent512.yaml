@@ -1,0 +1,9 @@
+defaults:
+  - /dataset/tiled/level2_extent512@_here_
+  - _self_
+
+mlflow_uris:
+  tiling_filtered: 
+    train: mlflow-artifacts:/1/26885cb72d9f4950b541dac8bc3ca1cf/artifacts/filtered_tiles/train
+    test_preliminary: mlflow-artifacts:/1/26885cb72d9f4950b541dac8bc3ca1cf/artifacts/filtered_tiles/test_preliminary
+    test_final: mlflow-artifacts:/1/26885cb72d9f4950b541dac8bc3ca1cf/artifacts/filtered_tiles/test_final

@@ -26,7 +26,7 @@ class EmbedTiles:
             limits=httpx.Limits(
                 max_connections=concurrency, max_keepalive_connections=concurrency
             ),
-            timeout=200,
+            timeout=86400,
         )
 
     async def __call__(self, row: dict[str, Any]) -> dict[str, Any]:

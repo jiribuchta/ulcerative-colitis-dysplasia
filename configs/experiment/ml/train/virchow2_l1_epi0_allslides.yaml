@@ -2,7 +2,7 @@
 
 defaults:
   - /experiment/ml/train/virchow2
-  - /dataset/embeddings/level1_extent224@dataset
+  - /dataset/embeddings/level2_extent512@dataset
   - _self_
 
 dataset:

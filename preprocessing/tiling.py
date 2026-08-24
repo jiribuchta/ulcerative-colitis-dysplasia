@@ -13,6 +13,7 @@ from omegaconf import DictConfig
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
 from ratiopath.parsers.empaia_parser import EMPAIAParser
+from rationai.mlkit.provenance import log_provenance
 from ratiopath.ray import read_slides
 from ratiopath.tiling import grid_tiles, tile_annotations, tile_overlay_overlap
 from ratiopath.tiling.utils import row_hash
@@ -309,6 +310,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             ds_tiles.write_parquet(str(save_dir / "tiles"), min_rows_per_file=rows)
 
             mlflow.log_artifacts(tmpdir, config.mlflow_artifact_path)
+    log_provenance(logger=logger, config=config)
+
 
 
 if __name__ == "__main__":

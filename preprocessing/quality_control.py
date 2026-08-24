@@ -75,11 +75,14 @@ async def qc_main(
             organize_masks(output_path, artifact_name, prefix)
 
         csvs = list(output_path.glob("*.csv"))
+        print(csvs)
         pd.concat([pd.read_csv(f) for f in csvs]).to_csv(
             output_path / "qc_metrics.csv", index=False
         )
 
         for f in csvs:
+            if f == output_path / "qc_metrics.csv":
+                continue
             f.unlink()
 
 

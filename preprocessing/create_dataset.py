@@ -7,6 +7,7 @@ import pandas as pd
 from omegaconf import DictConfig
 from rationai.mlkit import autolog, with_cli_args
 from rationai.mlkit.lightning.loggers import MLFlowLogger
+from rationai.mlkit.provenance import log_provenance
 
 
 def extract_case_id(stem: str) -> str:
@@ -112,6 +113,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             logger.log_artifact(str(file_path))
 
         _log_missing_items(missing_slides, "missing_slides.txt")
+
+        log_provenance(dataset, logger, config, positive_label="NEGATIVE")
 
 
 if __name__ == "__main__":

@@ -54,7 +54,7 @@ async def qc_main(
     max_concurrent: int,
     qc_parameters: QCParameters,
 ) -> None:
-    async with AsyncClient() as client:
+    async with AsyncClient(qc_base_url="http://rayservice-qc-update-trial-serve-svc.rationai-jobs-ns.svc.cluster.local:8000/") as client:
         async for result in tqdm(
             client.qc.check_slides(
                 slides,

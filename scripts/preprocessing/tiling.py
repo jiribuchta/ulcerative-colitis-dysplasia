@@ -7,7 +7,7 @@ submit_job(
     image="cerit.io/jiri_buchta/base-test-cuda:0.0.7",
     public=False,
     cpu=8,
-    memory="16Gi",
+    memory="32Gi",
     shm="16Gi",
     script=[
         "git clone https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git workdir",

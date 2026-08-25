@@ -315,7 +315,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
 
 
 if __name__ == "__main__":
-    ray.init(runtime_env={"excludes": [".git", ".venv"]})
+    ray.init(num_cpus=8, runtime_env={"excludes": [".git", ".venv"]})
     try:
         main()
     finally:

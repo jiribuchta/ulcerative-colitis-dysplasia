@@ -208,9 +208,12 @@ def tiling(
     qc_df = pd.read_csv(qc_folder / "qc_metrics.csv", index_col="slide_name")
 
     paths = df["slide_path"].tolist()
+    print("Starting tiling for slides:", flush=True)
+    print(paths, flush=True)
 
     slides = (
         read_slides(paths, tile_extent=tile_extent, stride=stride, mpp=mpp)
+        .map(lambda row: {print("Processing slide:", row["path"], flush=True); return row })
         .map(row_hash)
         .map(add_annot_path, fn_args=(df,))
         .map(qc_agg, fn_args=(qc_df,))  # pyright: ignore[reportArgumentType]

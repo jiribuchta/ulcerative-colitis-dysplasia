@@ -1,3 +1,4 @@
+import os
 import re
 import tempfile
 from collections.abc import Generator
@@ -63,6 +64,27 @@ def add_mask_paths(
         row[f"{key}_mask_path"] = str(qc_folder / subfolder / f"{stem}.tiff")
 
     return row
+
+def check_overlay_files(
+    df: pd.DataFrame,
+    qc_folder: Path,
+    tissue_folder: Path,
+) -> None:
+    """Print every overlay .tiff that is missing or zero-byte."""
+    stems = [Path(p).stem for p in df["slide_path"]]
+    checks = {
+        "tissue":      tissue_folder,
+        "blur":        qc_folder / QC_SUBFOLDERS["blur"],
+        "artifacts":   qc_folder / QC_SUBFOLDERS["artifacts"],
+    }
+    for name, folder in checks.items():
+        for stem in stems:
+            p = folder / f"{stem}.tiff"
+            if not p.is_file():
+                print(f"[OVERLAY-MISSING] {name}: {p}", flush=True)
+            elif p.stat().st_size == 0:
+                print(f"[OVERLAY-EMPTY]   {name}: {p} (0 bytes)", flush=True)
+
 
 
 def create_tissue_roi(tile_extent: int) -> Polygon:
@@ -213,7 +235,6 @@ def tiling(
 
     slides = (
         read_slides(paths, tile_extent=tile_extent, stride=stride, mpp=mpp)
-        .map(lambda row: {print("Processing slide:", row["path"], flush=True); return row })
         .map(row_hash)
         .map(add_annot_path, fn_args=(df,))
         .map(qc_agg, fn_args=(qc_df,))  # pyright: ignore[reportArgumentType]
@@ -292,6 +313,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         split = pd.read_csv(
             mlflow.artifacts.download_artifacts(split_uri), index_col="slide_id"
         )
+
+        check_overlay_files(split, qc_folder, tissue_folder)
 
         ds_slides, ds_tiles = tiling(
             split,

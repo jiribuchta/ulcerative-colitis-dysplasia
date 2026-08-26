@@ -8,6 +8,7 @@ from lightning import seed_everything
 from omegaconf import DictConfig, OmegaConf
 from rationai.mlkit import Trainer, autolog
 from rationai.mlkit.lightning.loggers import MLFlowLogger
+from rationai.mlkit.provenance import log_provenance
 from torch.utils.data import DataLoader
 
 from ml._mlflow_compat import apply_mlflow_compat_patch
@@ -142,6 +143,8 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
         testf1_main(config, logger)
     elif config.mode == "heatmap":
         heatmap_report_main(config, logger)
+
+    log_provenance(config=config, logger=logger)
     mlflow.end_run()
 
 

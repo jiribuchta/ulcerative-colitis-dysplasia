@@ -2,8 +2,9 @@ from kube_jobs import storage, submit_job
 
 
 submit_job(
-    job_name="ulcerative-colitis-dysplasia-embeddings-...",
-    username=...,
+    job_name="ulcerative-colitis-dysplasia-embeddings-test",
+    username="jiribuchta",
+    image="cerit.io/jiri_buchta/base-test-cuda:0.0.7",
     public=False,
     cpu=8,
     memory="32Gi",
@@ -11,8 +12,9 @@ submit_job(
     script=[
         "git clone https://github.com/RationAI/ulcerative-colitis.git workdir",
         "cd workdir",
-        "uv sync --frozen",
-        "uv run --active -m preprocessing.embeddings +dataset=tiled_filtered/...",
+        "git checkout feature/embeddings",
+        "uv sync",
+        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 MLFLOW_USER=jiribuchta && uv run --active -m preprocessing.embeddings +dataset=tiled_filtered/level2_extent224",
     ],
     storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

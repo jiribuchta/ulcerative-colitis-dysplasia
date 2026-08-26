@@ -14,7 +14,7 @@ submit_job(
         "cd workdir",
         "git checkout feature/embeddings",
         "uv sync",
-        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 MLFLOW_USER=jiribuchta && uv run --active -m preprocessing.embeddings +dataset=tiled_filtered/level2_extent224",
+        "export MLFLOW_TRACKING_URI=http://mlflow-jiribuchta.rationai-mlflow:5000/ PYTHONUNBUFFERED=1 MLFLOW_USER=jiribuchta && uv run python -u -m preprocessing.embeddings +dataset=tiled_filtered/level2_extent224",
     ],
     storage=[storage.secure.DATA, storage.secure.PROJECTS],
 )

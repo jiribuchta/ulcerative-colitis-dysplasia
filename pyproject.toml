@@ -33,7 +33,7 @@ dependencies = [
 
 [tool.uv.sources]
 rationai-sdk = { git = "https://github.com/RationAI/rationai-sdk-python.git" }
-rationai-mlkit = { git = "https://github.com/RationAI/mlkit.git", branch = "feature/ml-cnn" }
+rationai-mlkit = { git = "https://github.com/RationAI/mlkit.git", branch = "feature/prov" }
 rationai-masks = { git = "https://gitlab.ics.muni.cz/rationai/digital-pathology/libraries/masks.git" }
 ratiopath = { git = "https://github.com/RationAI/ratiopath.git" }
 

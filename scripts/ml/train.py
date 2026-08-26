@@ -9,7 +9,7 @@ submit_job(
     cpu=16,
     memory="64Gi",
     shm="64Gi",
-    gpu="mig-1g.10gb",
+    gpu="A40",
     script=[
         "git clone -b feature/ml-cnn https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",

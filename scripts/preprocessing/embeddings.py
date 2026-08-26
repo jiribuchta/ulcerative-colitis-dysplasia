@@ -10,7 +10,7 @@ submit_job(
     memory="32Gi",
     shm="16Gi",
     script=[
-        "git clone https://github.com/RationAI/ulcerative-colitis.git workdir",
+        "git clone https://github.com/jiribuchta/ulcerative-colitis-dysplasia.git workdir",
         "cd workdir",
         "git checkout feature/embeddings",
         "uv sync",

@@ -80,7 +80,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             slides = local_dir / "slides"
             tiles = local_dir / "tiles"
 
-            ds_tiles = ray.data.read_parquet(str(tiles))
+            ds_tiles = ray.data.read_parquet(str(tiles), num_cpus=8)
             filtered_ds_tiles = ds_tiles.groupby("slide_id").map_groups(
                 filter_slide_tiles, batch_format="pandas"
             )
@@ -88,7 +88,7 @@ def main(config: DictConfig, logger: MLFlowLogger) -> None:
             save_dir = Path(tmpdir) / split
             save_dir.mkdir(parents=True, exist_ok=True)
 
-            ds_slides = ray.data.read_parquet(str(slides))
+            ds_slides = ray.data.read_parquet(str(slides), num_cpus=8)
             rows = config.row_per_file
             ds_slides.write_parquet(str(save_dir / "slides"), min_rows_per_file=rows)
             filtered_ds_tiles.write_parquet(

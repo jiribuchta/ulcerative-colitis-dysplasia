@@ -183,3 +183,6 @@ lightning_logs/
 
 # Project
 /data
+
+/output
+*.json

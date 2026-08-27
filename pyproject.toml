@@ -29,6 +29,8 @@ dependencies = [
     "ratiopath",
     "torchvision>=0.26.0",
     "albumentationsx[headless]>=2.3.0",
+    "prov==2.0.0",
+    "pydot>=4.0.1",
 ]
 
 [tool.uv.sources]

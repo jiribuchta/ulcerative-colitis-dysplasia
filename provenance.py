@@ -40,7 +40,7 @@ import prov.dot
 
 DEFAULT_TRACK_URI = "https://mlflow-jiribuchta.dyn.cloud.trusted.e-infra.cz/"
 DEFAULT_URL = ("https://mlflow-jiribuchta.dyn.cloud.trusted.e-infra.cz/"
-              "#/experiments/1/runs/998f2e710351420db30ce182f284c321")
+              "#/experiments/1/runs/0607b554edb54225bdb4bbaa8f2ffdb4")
 
 # artifact URIs look like mlflow-artifacts:/<exp_id>/<run_id>/artifacts/<path>
 URI_RE = re.compile(r"mlflow-artifacts:/(\d+)/([0-9a-f]{32})/artifacts?/?(.*)")
@@ -246,6 +246,7 @@ def build_provenance(p: Probe, root_id: str, include_environment: bool = True) -
     used: dict = {}
     was_generated_by: dict = {}
     was_derived_from: dict = {}
+    derived_pairs: set[tuple[str, str]] = set()
     qualified_association: dict = {}
     was_attributed_to: dict = {}
     n = 0
@@ -330,7 +331,10 @@ def build_provenance(p: Probe, root_id: str, include_environment: bool = True) -
             })
             used[f"_:n{n}"] = {"prov:activity": act, "prov:entity": inp}
             n += 1
-            if up_id in chain:
+            # one derivation per (input, upstream-output) pair — every run
+            # consuming the same artifact URI maps to the same input entity
+            if up_id in chain and (uri, up_id) not in derived_pairs:
+                derived_pairs.add((uri, up_id))
                 was_derived_from[f"_:n{n}"] = {
                     "prov:entity": inp,
                     "prov:derivation": f"gen:output_{up_id}",
@@ -392,6 +396,7 @@ def build_prov_document(p: Probe, root_id: str) -> prov.model.ProvDocument:
     # bare attribute keys resolve against this default namespace
     doc.set_default_namespace("http://example.org/0/")
     chain = build_chain(p, root_id)
+    derived: set[tuple[str, str]] = set()
     bndl = doc.bundle(f"gen:bundle_{root_id}")
 
     for run_id, info in chain.items():
@@ -425,7 +430,11 @@ def build_prov_document(p: Probe, root_id: str) -> prov.model.ProvDocument:
                 "schema:url": uri,
             })
             bndl.used(act, inp)
-            if up_id in chain:
+            # one derivation per (input, upstream-output) pair: every consumer
+            # of the same URI resolves to the same input entity, and the
+            # consumer side is already covered by `used`
+            if up_id in chain and (uri, up_id) not in derived:
+                derived.add((uri, up_id))
                 bndl.wasDerivedFrom(inp, f"gen:output_{up_id}")
     return doc
 
@@ -515,7 +524,7 @@ def main(argv=None) -> int:
 # ponytail: self-check is offline by design (no server, no graphviz); live
 # behaviour verified by running the default URL.
 def self_check() -> int:
-    assert parse_run_id(DEFAULT_URL) == "998f2e710351420db30ce182f284c321"
+    assert re.fullmatch(r"[0-9a-f]{32}", parse_run_id(DEFAULT_URL))
     assert parse_run_id("998f2e710351420db30ce182f284c321") == "998f2e710351420db30ce182f284c321"
     m = URI_RE.search("x mlflow-artifacts:/111/e8175ecf823d403ca5b629a9bb3cf874/artifacts/train.csv y")
     assert m.group(1) == "111" and m.group(2) == "e8175ecf823d403ca5b629a9bb3cf874"
@@ -527,7 +536,7 @@ def self_check() -> int:
 
     # a stub Probe must produce a CPM bundle AND a prov document with every
     # expected section / record type
-    rid_a, rid_b = "a" * 32, "b" * 32
+    rid_a, rid_b, rid_c = "a" * 32, "b" * 32, "c" * 32
 
     class FakeRun:
         class info:
@@ -542,12 +551,15 @@ def self_check() -> int:
 
     stub = SimpleNamespace(
         get_run=lambda rid: FakeRun(),
-        has_run=lambda rid: rid in (rid_a, rid_b),
+        has_run=lambda rid: rid in (rid_a, rid_b, rid_c),
         name=lambda rid: "Root Train" if rid == rid_a else "Upstream Dataset",
-        input_refs=lambda rid: (
-            [("1", rid_b, f"mlflow-artifacts:/1/{rid_b}/artifacts/dataset.csv")]
-            if rid == rid_a else []
-        ),
+        input_refs=lambda rid: {
+            # rid_a <- rid_b (dataset.csv) + rid_c (model.h5); rid_c <- rid_b
+            # (dataset.csv): two runs in the chain consume the same artifact
+            rid_a: [("1", rid_b, f"mlflow-artifacts:/1/{rid_b}/artifacts/dataset.csv"),
+                    ("1", rid_c, f"mlflow-artifacts:/1/{rid_c}/artifacts/model.h5")],
+            rid_c: [("1", rid_b, f"mlflow-artifacts:/1/{rid_b}/artifacts/dataset.csv")],
+        }.get(rid, []),
         walk_artifacts=lambda rid, path=None: [],
         download=lambda rid, path: b"",
     )
@@ -564,8 +576,15 @@ def self_check() -> int:
     assert any("gen:output_" in k for k in b["entity"])
     assert any("gen:annotation_params_" in k for k in b["entity"])
     assert any(k == f"gen:user_u1" for k in b["agent"])
-    assert any(d.get("prov:derivation") == f"gen:output_{rid_b}"
-               for d in b["wasDerivedFrom"].values())
+    # exactly ONE derivation record even though two runs consume the URI
+    assert [d for d in b["wasDerivedFrom"].values()
+            if d.get("prov:derivation") == f"gen:output_{rid_b}"] == [
+        {"prov:entity": f"gen:input_" + slug(f"mlflow-artifacts:/1/{rid_b}/artifacts/dataset.csv"),
+         "prov:derivation": f"gen:output_{rid_b}"}]
+    # ...but two separate `used` relations (one per consumer)
+    assert sum(1 for d in b["used"].values()
+               if d["prov:entity"].endswith("dataset_csv")) == 2
+    assert len(b["wasDerivedFrom"]) == 2  # dataset.csv->rid_b, model.h5->rid_c
 
     # prov document (same object model RationAI/crc_ml-provenance exports)
     doc = build_prov_document(stub, rid_a)
@@ -579,6 +598,9 @@ def self_check() -> int:
     for expected in ("ProvGeneration", "ProvUsage", "ProvDerivation",
                      "ProvAssociation", "ProvAttribution"):
         assert expected in types, f"missing record {expected}"
+    # 3 consumed (input, derivation) pairs, 2 unique: dataset.csv->rid_b
+    # consumed by both rid_a and rid_c collapses to one record
+    assert types.count("ProvDerivation") == 2
     ents = [r for r in bundle.get_records() if isinstance(r, prov.model.ProvElement)]
     ids = {str(e.identifier): e for e in ents}  # QualifiedName -> "gen:xxx"
     assert f"gen:run_{rid_a}" in ids and f"gen:run_{rid_b}" in ids

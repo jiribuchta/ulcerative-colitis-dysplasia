@@ -8,6 +8,7 @@ data_path: /mnt/projects/inflammatory_bowel_disease/ulcerative_colitis_dysplasia
 metadata:
   experiment_name: Provenance Demo
   run_name: provenance-demo-train
+  description: End-to-end provenance demo (register dataset, verify, train)
 
 demo:
   # create | register | train

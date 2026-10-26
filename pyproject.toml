@@ -26,11 +26,13 @@ dependencies = [
   "rationai-sdk>=0.1.0",
   "rationai-masks",
   "rationai-mlkit",
+  "rationai-provenance",
   "ratiopath",
 ]
 
 [tool.uv.sources]
 rationai-sdk = { git = "https://gitlab.ics.muni.cz/rationai/infrastructure/rationai-sdk-python.git" }
+rationai-provenance = { git = "https://gitlab.ics.muni.cz/rationai/digital-pathology/libraries/provenance.git" }
 rationai-mlkit = { git = "https://github.com/RationAI/mlkit.git", branch = "feature/prov" }
 rationai-masks = { git = "https://gitlab.ics.muni.cz/rationai/digital-pathology/libraries/masks.git" }
 ratiopath = { git = "https://github.com/RationAI/ratiopath.git" }

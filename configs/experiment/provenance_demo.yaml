@@ -1,0 +1,17 @@
+# @package _global_
+
+# End-to-end provenance demo (create → register → train).
+# The demo dataset lives on the projects share (read-write in jobs).
+
+data_path: /mnt/projects/inflammatory_bowel_disease/ulcerative_colitis_dysplasia/prov_demo_data
+
+metadata:
+  experiment_name: Provenance Demo
+  run_name: provenance-demo-train
+
+demo:
+  # create | register | train
+  step: create
+  dataset_name: prov-demo
+  dataset_version: "1.0.0"
+  files_per_class: 10

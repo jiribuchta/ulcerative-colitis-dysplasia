@@ -44,7 +44,8 @@ def _create_dataset(data_path: str, files_per_class: int) -> None:
     for label, sub, size in ((0, "neg", 1_000), (1, "pos", 10_000)):
         os.makedirs(os.path.join(data_path, sub), exist_ok=True)
         for i in range(files_per_class):
-            name = f"slide_{i:03d}.dat"
+            # shortcut: unique basenames required — registry keys file sizes by name
+            name = f"{sub}_{i:03d}.dat"
             with open(os.path.join(data_path, sub, name), "wb") as f:
                 f.write(rng.randbytes(size + i))
             rows.append({"wsi_path": f"{sub}/{name}", "cancer": label})
